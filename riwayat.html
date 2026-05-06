@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Transaksi - Loker Keuangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #08080c; --bg-elevated: #101018; --fg: #f4f4f6; --fg-muted: #71717a;
+            --accent: #f59e0b; --accent-dim: rgba(245,158,11,0.12); --card: #14141c;
+            --card-hover: #1c1c26; --border: #27272f; --danger: #ef4444; --success: #22c55e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--fg);
+            min-height: 100vh; padding-bottom: 100px; overflow-x: hidden;
+        }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+        body::before {
+            content: ''; position: fixed; top: -40%; right: -20%; width: 70vw; height: 70vw;
+            background: radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
+            animation: floatBlob 22s ease-in-out infinite alternate;
+        }
+        body::after {
+            content: ''; position: fixed; bottom: -30%; left: -15%; width: 55vw; height: 55vw;
+            background: radial-gradient(circle, rgba(245,158,11,0.04) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
+            animation: floatBlob 28s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-30px, 20px) scale(1.12); }
+        }
+
+        .card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .card-hover:hover { background: var(--card-hover); transform: translateY(-1px); }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: 14px;
+            border: none; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-primary:hover { box-shadow: 0 8px 24px rgba(245,158,11,0.35); }
+        .btn-ghost { background: transparent; color: var(--fg-muted); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--bg-elevated); color: var(--fg); }
+        .btn-sm { padding: 7px 14px; font-size: 13px; border-radius: 10px; }
+
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 8px 16px; color: var(--fg-muted); transition: color 0.2s ease;
+            border-radius: 12px; background: none; border: none; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn svg { width: 22px; height: 22px; }
+        .nav-btn span { font-size: 11px; font-weight: 500; }
+
+        .filter-chip {
+            padding: 7px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+            background: var(--card); border: 1px solid var(--border); color: var(--fg-muted);
+            cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .filter-chip:hover { border-color: var(--fg-muted); color: var(--fg); }
+        .filter-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+        .input-field {
+            width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--card); color: var(--fg); font-size: 14px;
+            font-family: 'DM Sans', sans-serif; outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+        .input-field::placeholder { color: var(--fg-muted); }
+
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end;
+            justify-content: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-sheet {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-bottom: none;
+            border-radius: 24px 24px 0 0; width: 100%; max-width: 520px;
+            padding: 24px 20px 32px; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(.22,.68,0,1);
+        }
+        .modal-overlay.open .modal-sheet { transform: translateY(0); }
+        .modal-handle { width: 36px; height: 4px; border-radius: 999px; background: var(--border); margin: 0 auto 20px; }
+
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast {
+            padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+            pointer-events: all; animation: toastIn 0.4s cubic-bezier(.22,.68,0,1) forwards;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4); white-space: nowrap;
+        }
+        .toast.out { animation: toastOut 0.3s ease forwards; }
+        .toast-success { background: #14532d; color: #86efac; border: 1px solid #166534; }
+        .toast-error { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+        .toast-info { background: #1c1917; color: #fbbf24; border: 1px solid #44403c; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(-12px) scale(0.95); } }
+
+        .tx-item {
+            display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+            border-radius: 14px; transition: background 0.2s ease; cursor: default;
+        }
+        .tx-item:hover { background: rgba(255,255,255,0.02); }
+
+        .date-separator {
+            display: flex; align-items: center; gap: 12px; padding: 8px 4px;
+        }
+        .date-separator::before, .date-separator::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        .stat-mini {
+            text-align: center; padding: 16px 12px; border-radius: 14px;
+            background: var(--card); border: 1px solid var(--border);
+            transition: transform 0.2s ease;
+        }
+        .stat-mini:hover { transform: translateY(-2px); }
+
+        .empty-float { animation: emptyFloat 3s ease-in-out infinite; }
+        @keyframes emptyFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .select-field {
+            appearance: none; width: 100%; padding: 10px 36px 10px 14px; border-radius: 12px;
+            border: 1px solid var(--border); background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2371717a' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E") no-repeat right 12px center;
+            color: var(--fg); font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease; cursor: pointer;
+        }
+        .select-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+        .select-field option { background: var(--bg-elevated); color: var(--fg); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 px-4 py-4 backdrop-blur-xl border-b" style="background: rgba(8,8,12,0.85); border-color: var(--border);">
+        <div class="max-w-lg mx-auto flex items-center justify-between relative" style="z-index:1;">
+            <button onclick="history.back()" class="text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors" aria-label="Kembali">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+            </button>
+            <h1 class="font-display font-bold text-lg tracking-tight">Riwayat Transaksi</h1>
+            <button onclick="openExportModal()" class="text-sm font-semibold" style="color: var(--accent);" aria-label="Ekspor riwayat">Ekspor</button>
+        </div>
+    </header>
+
+    <!-- Ringkasan -->
+    <section class="max-w-lg mx-auto px-4 pt-6 pb-2 relative" style="z-index:1;" id="summarySection"></section>
+
+    <!-- Filter & Pencarian -->
+    <section class="max-w-lg mx-auto px-4 py-3 space-y-3 relative" style="z-index:1;">
+        <!-- Baris filter tipe -->
+        <div class="flex gap-2 overflow-x-auto pb-1" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;" id="typeFilters">
+            <button class="filter-chip active" data-filter="all" onclick="setTypeFilter('all')">Semua</button>
+            <button class="filter-chip" data-filter="add" onclick="setTypeFilter('add')">Masuk</button>
+            <button class="filter-chip" data-filter="withdraw" onclick="setTypeFilter('withdraw')">Keluar</button>
+        </div>
+        <!-- Pencarian & filter loker -->
+        <div class="flex gap-2">
+            <div class="relative flex-1">
+                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color:var(--fg-muted);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+                <input type="text" class="input-field pl-9" placeholder="Cari transaksi..." id="searchInput" oninput="applyFilters()" autocomplete="off">
+            </div>
+            <select class="select-field" style="width:auto; min-width:120px;" id="lokerFilter" onchange="applyFilters()">
+                <option value="all">Semua Loker</option>
+            </select>
+        </div>
+        <!-- Baris periode -->
+        <div class="flex gap-2 overflow-x-auto pb-1" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;" id="periodFilters">
+            <button class="filter-chip" data-period="7" onclick="setPeriodFilter(7)">7 Hari</button>
+            <button class="filter-chip" data-period="30" onclick="setPeriodFilter(30)">30 Hari</button>
+            <button class="filter-chip" data-period="90" onclick="setPeriodFilter(90)">3 Bulan</button>
+            <button class="filter-chip active" data-period="0" onclick="setPeriodFilter(0)">Semua</button>
+        </div>
+    </section>
+
+    <!-- Jumlah hasil -->
+    <div class="max-w-lg mx-auto px-4 relative" style="z-index:1;">
+        <p class="text-xs font-medium py-2" style="color:var(--fg-muted);" id="resultCount"></p>
+    </div>
+
+    <!-- Daftar Transaksi -->
+    <main class="max-w-lg mx-auto px-4 pb-4 relative" style="z-index:1;" id="txList"></main>
+
+    <!-- Modal: Detail Transaksi -->
+    <div class="modal-overlay" id="txDetailModal" role="dialog" aria-modal="true" aria-label="Detail Transaksi">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="modal-handle"></div>
+            <div id="txDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Ekspor -->
+    <div class="modal-overlay" id="exportModal" role="dialog" aria-modal="true" aria-label="Ekspor Riwayat">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="modal-handle"></div>
+            <h2 class="font-display font-bold text-xl mb-2">Ekspor Riwayat</h2>
+            <p class="text-sm mb-5" style="color:var(--fg-muted);">Unduh riwayat transaksi yang sudah difilter saat ini.</p>
+            <div class="space-y-3">
+                <button class="btn btn-primary w-full" onclick="exportCSV()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                    Unduh CSV
+                </button>
+                <button class="btn btn-ghost w-full" onclick="copyToClipboard()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/></svg>
+                    Salin ke Clipboard
+                </button>
+            </div>
+            <button class="btn btn-ghost w-full mt-3" onclick="closeModal('exportModal')">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Modal: Konfirmasi Hapus Riwayat -->
+    <div class="modal-overlay" id="deleteHistoryModal" role="dialog" aria-modal="true" aria-label="Hapus Riwayat">
+        <div class="modal-sheet" onclick="event.stopPropagation()" style="text-align:center;">
+            <div class="modal-handle"></div>
+            <div class="text-5xl mb-4">🗑️</div>
+            <h2 class="font-display font-bold text-xl mb-2">Hapus Riwayat?</h2>
+            <p class="text-sm mb-6" style="color:var(--fg-muted);" id="deleteHistoryText">Transaksi ini akan dihapus permanen.</p>
+            <div class="flex gap-3">
+                <button class="btn btn-ghost flex-1" onclick="closeModal('deleteHistoryModal')">Batal</button>
+                <button class="btn btn-danger flex-1" onclick="confirmDeleteHistory()">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t" style="background: rgba(8,8,12,0.92); border-color: var(--border);" role="navigation" aria-label="Navigasi utama">
+        <div class="max-w-lg mx-auto flex justify-around py-2 px-4">
+            <button class="nav-btn" onclick="location.href='index.html'" aria-label="Beranda">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg><span>Beranda</span>
+            </button>
+            <button class="nav-btn" onclick="location.href='loker.html'" aria-label="Loker">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg><span>Loker</span>
+            </button>
+            <button class="nav-btn active" aria-label="Riwayat" aria-current="page">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>Riwayat</span>
+            </button>
+            <button class="nav-btn" onclick="location.href='profil.html'" aria-label="Profil">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg><span>Profil</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        /* =====================================================
+           DATA & STATE
+        ===================================================== */
+        const STORAGE_KEY = 'lokerData';
+        const HISTORY_KEY = 'lokerHistory';
+
+        let currentTypeFilter = 'all';
+        let currentPeriodFilter = 0;
+        let filteredHistory = [];
+        let deleteHistoryTarget = null;
+
+        function loadData() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+        function loadHistory() { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+        function saveHistory(h) { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }
+
+        /* =====================================================
+           FORMAT HELPERS
+        ===================================================== */
+        function formatCurrency(n) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
+        }
+        function formatShort(n) {
+            if (n >= 1000000000) return (n / 1000000000).toFixed(1).replace('.0', '') + 'M';
+            if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'Jt';
+            if (n >= 1000) return (n / 1000).toFixed(0) + 'Rb';
+            return n.toString();
+        }
+
+        function formatDate(ts) {
+            const d = new Date(ts);
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+        function formatTime(ts) {
+            return new Date(ts).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        }
+        function formatDateGroup(ts) {
+            const d = new Date(ts);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yesterday = new Date(today - 86400000);
+            const txDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+            if (txDay.getTime() === today.getTime()) return 'Hari Ini';
+            if (txDay.getTime() === yesterday.getTime()) return 'Kemarin';
+            return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        /* =====================================================
+           TOAST
+        ===================================================== */
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            el.className = `toast toast-${type}`;
+            el.textContent = msg;
+            c.appendChild(el);
+            setTimeout(() => el.classList.add('out'), 2500);
+            setTimeout(() => el.remove(), 2900);
+        }
+
+        /* =====================================================
+           MODAL
+        ===================================================== */
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.addEventListener('click', () => closeModal(m.id));
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+        });
+
+        /* =====================================================
+           RINGKASAN
+        ===================================================== */
+        function renderSummary() {
+            const history = loadHistory();
+            const totalIn = history.filter(h => h.type === 'add').reduce((s, h) => s + h.amount, 0);
+            const totalOut = history.filter(h => h.type === 'withdraw').reduce((s, h) => s + h.amount, 0);
+            const net = totalIn - totalOut;
+            const txCount = history.length;
+
+            document.getElementById('summarySection').innerHTML = `
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="stat-mini">
+                        <div class="flex items-center justify-center gap-1 mb-2">
+                            <svg class="w-4 h-4" style="color:#22c55e;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75"/></svg>
+                        </div>
+                        <p class="font-display font-bold text-sm" style="color:#22c55e;">${formatShort(totalIn)}</p>
+                        <p class="text-[11px] mt-1" style="color:var(--fg-muted);">Masuk</p>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="flex items-center justify-center gap-1 mb-2">
+                            <svg class="w-4 h-4" style="color:#f87171;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"/></svg>
+                        </div>
+                        <p class="font-display font-bold text-sm" style="color:#f87171;">${formatShort(totalOut)}</p>
+                        <p class="text-[11px] mt-1" style="color:var(--fg-muted);">Keluar</p>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="flex items-center justify-center gap-1 mb-2">
+                            <svg class="w-4 h-4" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+                        </div>
+                        <p class="font-display font-bold text-sm" style="color:${net >= 0 ? '#22c55e' : '#f87171'};">${net >= 0 ? '+' : ''}${formatShort(net)}</p>
+                        <p class="text-[11px] mt-1" style="color:var(--fg-muted);">Bersih</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* =====================================================
+           FILTER LOKER DROPDOWN
+        ===================================================== */
+        function renderLokerFilter() {
+            const lokers = loadData();
+            const sel = document.getElementById('lokerFilter');
+            // Pertahankan value saat ini
+            const current = sel.value;
+            sel.innerHTML = '<option value="all">Semua Loker</option>';
+            lokers.forEach(l => {
+                sel.innerHTML += `<option value="${l.id}">${l.icon} ${l.name}</option>`;
+            });
+            sel.value = current;
+        }
+
+        /* =====================================================
+           FILTER
+        ===================================================== */
+        function setTypeFilter(type) {
+            currentTypeFilter = type;
+            document.querySelectorAll('#typeFilters .filter-chip').forEach(c => {
+                c.classList.toggle('active', c.dataset.filter === type);
+            });
+            applyFilters();
+        }
+
+        function setPeriodFilter(days) {
+            currentPeriodFilter = days;
+            document.querySelectorAll('#periodFilters .filter-chip').forEach(c => {
+                c.classList.toggle('active', parseInt(c.dataset.period) === days);
+            });
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const history = loadHistory();
+            const lokers = loadData();
+            const lokerMap = {};
+            lokers.forEach(l => lokerMap[l.id] = l);
+
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            const lokerId = document.getElementById('lokerFilter').value;
+            const now = Date.now();
+
+            filteredHistory = history.filter(h => {
+                // Filter tipe
+                if (currentTypeFilter !== 'all' && h.type !== currentTypeFilter) return false;
+                // Filter loker
+                if (lokerId !== 'all' && h.lokerId !== parseInt(lokerId)) return false;
+                // Filter periode
+                if (currentPeriodFilter > 0 && (now - h.date) > currentPeriodFilter * 86400000) return false;
+                // Filter pencarian
+                if (search) {
+                    const loker = lokerMap[h.lokerId];
+                    const lokerName = loker ? loker.name.toLowerCase() : '';
+                    const note = (h.note || '').toLowerCase();
+                    const amount = formatCurrency(h.amount).toLowerCase();
+                    if (!lokerName.includes(search) && !note.includes(search) && !amount.includes(search)) return false;
+                }
+                return true;
+            });
+
+            // Urutkan terbaru dulu
+            filteredHistory.sort((a, b) => b.date - a.date);
+
+            renderList();
+        }
+
+        /* =====================================================
+           RENDER DAFTAR TRANSAKSI
+        ===================================================== */
+        function renderList() {
+            const lokers = loadData();
+            const lokerMap = {};
+            lokers.forEach(l => lokerMap[l.id] = l);
+
+            document.getElementById('resultCount').textContent =
+                filteredHistory.length > 0 ? `${filteredHistory.length} transaksi ditemukan` : '';
+
+            const container = document.getElementById('txList');
+
+            if (filteredHistory.length === 0) {
+                const hasAnyHistory = loadHistory().length > 0;
+                container.innerHTML = `
+                    <div class="text-center py-20">
+                        <div class="text-6xl empty-float" style="opacity:0.25;">${hasAnyHistory ? '🔍' : '📋'}</div>
+                        <h3 class="font-display font-semibold text-lg mt-4" style="color:var(--fg-muted);">
+                            ${hasAnyHistory ? 'Tidak ada hasil' : 'Belum ada riwayat'}
+                        </h3>
+                        <p class="text-sm mt-2" style="color:var(--fg-muted);">
+                            ${hasAnyHistory ? 'Coba ubah filter atau kata kunci pencarian' : 'Transaksi akan muncul setelah kamu menambahkan atau mengambil dana'}
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Kelompokkan berdasarkan tanggal
+            const groups = [];
+            let currentGroupLabel = '';
+
+            filteredHistory.forEach((h, i) => {
+                const label = formatDateGroup(h.date);
+                if (label !== currentGroupLabel) {
+                    groups.push({ type: 'separator', label: label });
+                    currentGroupLabel = label;
+                }
+                groups.push({ type: 'tx', data: h, index: i });
+            });
+
+            // Hitung subtotal per grup
+            const groupSubtotals = {};
+            filteredHistory.forEach(h => {
+                const label = formatDateGroup(h.date);
+                if (!groupSubtotals[label]) groupSubtotals[label] = { in: 0, out: 0 };
+                if (h.type === 'add') groupSubtotals[label].in += h.amount;
+                else groupSubtotals[label].out += h.amount;
+            });
+
+            container.innerHTML = groups.map(item => {
+                if (item.type === 'separator') {
+                    const sub = groupSubtotals[item.label];
+                    return `
+                        <div class="date-separator">
+                            <span class="text-xs font-semibold flex-shrink-0" style="color:var(--fg-muted);">${item.label}</span>
+                        </div>
+                        <div class="flex gap-3 px-2 -mt-1 mb-1">
+                            <span class="text-[11px]" style="color:#22c55e;">+${formatShort(sub.in)}</span>
+                            ${sub.out > 0 ? `<span class="text-[11px]" style="color:#f87171;">-${formatShort(sub.out)}</span>` : ''}
+                        </div>
+                    `;
+                }
+
+                const h = item.data;
+                const loker = lokerMap[h.lokerId];
+                const isIn = h.type === 'add';
+                const delay = Math.min(item.index * 0.04, 0.6);
+
+                return `
+                    <div class="tx-item" onclick="openTxDetail(${item.index})" style="animation: fadeSlideUp 0.35s ${delay}s both cubic-bezier(.22,.68,0,1);">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                             style="background: ${loker ? loker.color + '18' : 'var(--card)'};">
+                            <span class="text-lg">${loker ? loker.icon : '🔒'}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm font-semibold truncate">${loker ? loker.name : 'Loker Dihapus'}</p>
+                                <span class="flex-shrink-0 w-2 h-2 rounded-full" style="background:${isIn ? '#22c55e' : '#f87171'};"></span>
+                            </div>
+                            <p class="text-xs truncate mt-0.5" style="color:var(--fg-muted);">
+                                ${h.note || (isIn ? 'Setoran' : 'Penarikan')} · ${formatTime(h.date)}
+                            </p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <p class="font-display font-bold text-sm" style="color:${isIn ? '#22c55e' : '#f87171'};">
+                                ${isIn ? '+' : '-'}${formatCurrency(h.amount)}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* =====================================================
+           DETAIL TRANSAKSI
+        ===================================================== */
+        function openTxDetail(index) {
+            const h = filteredHistory[index];
+            if (!h) return;
+            const lokers = loadData();
+            const loker = lokers.find(l => l.id === h.lokerId);
+            const isIn = h.type === 'add';
+
+            document.getElementById('txDetailContent').innerHTML = `
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                         style="background: ${loker ? loker.color + '18' : 'var(--card)'};">
+                        <span class="text-3xl">${loker ? loker.icon : '🔒'}</span>
+                    </div>
+                    <p class="font-display font-bold text-3xl" style="color:${isIn ? '#22c55e' : '#f87171'};">
+                        ${isIn ? '+' : '-'}${formatCurrency(h.amount)}
+                    </p>
+                    <span class="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full text-xs font-semibold"
+                          style="background:${isIn ? 'rgba(34,197,94,0.12)' : 'rgba(248,113,113,0.12)'}; color:${isIn ? '#22c55e' : '#f87171'};">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="${isIn ? 'M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75' : 'M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75'}"/>
+                        </svg>
+                        ${isIn ? 'Dana Masuk' : 'Dana Keluar'}
+                    </span>
+                </div>
+
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-center justify-between p-3 rounded-xl" style="background:var(--card);">
+                        <span class="text-sm" style="color:var(--fg-muted);">Loker</span>
+                        <span class="text-sm font-semibold">${loker ? loker.icon + ' ' + loker.name : 'Dihapus'}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl" style="background:var(--card);">
+                        <span class="text-sm" style="color:var(--fg-muted);">Tanggal</span>
+                        <span class="text-sm font-semibold">${formatDate(h.date)}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl" style="background:var(--card);">
+                        <span class="text-sm" style="color:var(--fg-muted);">Waktu</span>
+                        <span class="text-sm font-semibold">${formatTime(h.date)}</span>
+                    </div>
+                    ${h.note ? `
+                    <div class="flex items-center justify-between p-3 rounded-xl" style="background:var(--card);">
+                        <span class="text-sm" style="color:var(--fg-muted);">Catatan</span>
+                        <span class="text-sm font-semibold text-right max-w-[60%] truncate">${h.note}</span>
+                    </div>` : ''}
+                </div>
+
+                <button class="btn btn-danger w-full" onclick="openDeleteHistoryConfirm(${index})">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                    Hapus Transaksi
+                </button>
+            `;
+            openModal('txDetailModal');
+        }
+
+        /* =====================================================
+           HAPUS TRANSAKSI
+        ===================================================== */
+        function openDeleteHistoryConfirm(index) {
+            deleteHistoryTarget = index;
+            const h = filteredHistory[index];
+            document.getElementById('deleteHistoryText').textContent =
+                `Transaksi ${formatCurrency(h.amount)} akan dihapus permanen. Saldo loker tidak akan berubah.`;
+            closeModal('txDetailModal');
+            setTimeout(() => openModal('deleteHistoryModal'), 300);
+        }
+
+        function confirmDeleteHistory() {
+            if (deleteHistoryTarget === null) return;
+            const h = filteredHistory[deleteHistoryTarget];
+            let allHistory = loadHistory();
+            const txIndex = allHistory.findIndex(x => x.date === h.date && x.lokerId === h.lokerId && x.amount === h.amount && x.type === h.type);
+            if (txIndex >= 0) {
+                allHistory.splice(txIndex, 1);
+                saveHistory(allHistory);
+            }
+            deleteHistoryTarget = null;
+            closeModal('deleteHistoryModal');
+            renderAll();
+            showToast('Transaksi berhasil dihapus', 'info');
+        }
+
+        /* =====================================================
+           EKSPOR
+        ===================================================== */
+        function openExportModal() {
+            if (filteredHistory.length === 0) {
+                showToast('Tidak ada transaksi untuk diekspor', 'error');
+                return;
+            }
+            openModal('exportModal');
+        }
+
+        function getExportData() {
+            const lokers = loadData();
+            const lokerMap = {};
+            lokers.forEach(l => lokerMap[l.id] = l);
+
+            return filteredHistory.map(h => {
+                const loker = lokerMap[h.lokerId];
+                return {
+                    tanggal: formatDate(h.date),
+                    waktu: formatTime(h.date),
+                    loker: loker ? loker.name : 'Dihapus',
+                    tipe: h.type === 'add' ? 'Masuk' : 'Keluar',
+                    jumlah: h.amount,
+                    catatan: h.note || '-'
+                };
+            });
+        }
+
+        function exportCSV() {
+            const rows = getExportData();
+            const headers = ['Tanggal', 'Waktu', 'Loker', 'Tipe', 'Jumlah', 'Catatan'];
+            const csvRows = [headers.join(',')];
+            rows.forEach(r => {
+                csvRows.push([
+                    `"${r.tanggal}"`, `"${r.waktu}"`, `"${r.loker}"`, `"${r.tipe}"`,
+                    r.jumlah, `"${r.catatan}"`
+                ].join(','));
+            });
+            const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `riwayat-loker-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            closeModal('exportModal');
+            showToast(`${rows.length} transaksi berhasil diunduh`, 'success');
+        }
+
+        function copyToClipboard() {
+            const rows = getExportData();
+            const text = rows.map(r =>
+                `${r.tanggal} ${r.waktu} | ${r.loker} | ${r.tipe === 'Masuk' ? '+' : '-'}${formatCurrency(r.jumlah)} | ${r.catatan}`
+            ).join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                closeModal('exportModal');
+                showToast(`${rows.length} transaksi disalin ke clipboard`, 'success');
+            }).catch(() => {
+                showToast('Gagal menyalin ke clipboard', 'error');
+            });
+        }
+
+        /* =====================================================
+           RENDER SEMUA
+        ===================================================== */
+        function renderAll() {
+            renderSummary();
+            renderLokerFilter();
+            applyFilters();
+        }
+
+        document.addEventListener('DOMContentLoaded', renderAll);
+    </script>
+</body>
+</html>
