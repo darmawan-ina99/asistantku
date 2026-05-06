@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loker Keuangan - Asisten Pribadi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #08080c; --bg-elevated: #101018; --fg: #f4f4f6; --fg-muted: #71717a;
+            --accent: #f59e0b; --accent-dim: rgba(245,158,11,0.12); --card: #14141c;
+            --card-hover: #1c1c26; --border: #27272f; --danger: #ef4444; --success: #22c55e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--fg);
+            min-height: 100vh; padding-bottom: 100px; overflow-x: hidden;
+        }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Atmosfer latar */
+        body::before {
+            content: ''; position: fixed; top: -40%; left: -20%; width: 80vw; height: 80vw;
+            background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
+            animation: floatBlob 20s ease-in-out infinite alternate;
+        }
+        body::after {
+            content: ''; position: fixed; bottom: -30%; right: -20%; width: 60vw; height: 60vw;
+            background: radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
+            animation: floatBlob 25s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, -30px) scale(1.15); }
+        }
+
+        /* Kartu */
+        .card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+            transition: transform 0.25s cubic-bezier(.22,.68,0,1.2), background 0.2s ease, box-shadow 0.25s ease;
+            cursor: pointer; position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; inset: 0; opacity: 0;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.03), transparent 60%);
+            transition: opacity 0.3s ease;
+        }
+        .card:hover::before { opacity: 1; }
+        .card:hover { background: var(--card-hover); transform: translateY(-3px); box-shadow: 0 16px 40px -10px rgba(0,0,0,0.4); }
+        .card:active { transform: translateY(-1px) scale(0.985); }
+
+        /* Tombol */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 11px 20px; border-radius: 12px; font-weight: 600; font-size: 14px;
+            border: none; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-primary:hover { box-shadow: 0 8px 28px rgba(245,158,11,0.4); }
+        .btn-ghost { background: transparent; color: var(--fg-muted); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--bg-elevated); color: var(--fg); }
+        .btn-danger { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
+        .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: 10px; }
+
+        /* Progress bar animasi */
+        .progress-fill {
+            height: 100%; border-radius: 999px; width: 0;
+            transition: width 1.2s cubic-bezier(.22,.68,0,1);
+        }
+
+        /* Navigasi bawah */
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 8px 16px; color: var(--fg-muted); transition: color 0.2s ease;
+            border-radius: 12px; background: none; border: none; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn svg { width: 22px; height: 22px; }
+        .nav-btn span { font-size: 11px; font-weight: 500; }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end;
+            justify-content: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-sheet {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-bottom: none;
+            border-radius: 24px 24px 0 0; width: 100%; max-width: 520px;
+            padding: 24px 20px 32px; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(.22,.68,0,1);
+        }
+        .modal-overlay.open .modal-sheet { transform: translateY(0); }
+        .modal-handle {
+            width: 36px; height: 4px; border-radius: 999px; background: var(--border);
+            margin: 0 auto 20px;
+        }
+
+        /* Input */
+        .input-field {
+            width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--card); color: var(--fg); font-size: 15px;
+            font-family: 'DM Sans', sans-serif; outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+        .input-field::placeholder { color: var(--fg-muted); }
+        .input-label { display: block; font-size: 13px; font-weight: 600; color: var(--fg-muted); margin-bottom: 6px; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast {
+            padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+            pointer-events: all; animation: toastIn 0.4s cubic-bezier(.22,.68,0,1) forwards;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4); white-space: nowrap;
+        }
+        .toast.out { animation: toastOut 0.3s ease forwards; }
+        .toast-success { background: #14532d; color: #86efac; border: 1px solid #166534; }
+        .toast-error { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+        .toast-info { background: #1c1917; color: #fbbf24; border: 1px solid #44403c; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(-12px) scale(0.95); } }
+
+        /* Quick amount chips */
+        .chip {
+            padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+            background: var(--card); border: 1px solid var(--border); color: var(--fg-muted);
+            cursor: pointer; transition: all 0.2s ease; font-family: 'Space Grotesk', sans-serif;
+        }
+        .chip:hover, .chip.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+        /* Stat ring */
+        .stat-ring { position: relative; width: 100px; height: 100px; }
+        .stat-ring svg { transform: rotate(-90deg); }
+        .stat-ring-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+
+        /* Empty state */
+        .empty-icon { font-size: 64px; opacity: 0.3; animation: emptyFloat 3s ease-in-out infinite; }
+        @keyframes emptyFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        /* Swipe hint */
+        .swipe-actions {
+            position: absolute; right: 0; top: 0; bottom: 0; display: flex;
+            opacity: 0; transform: translateX(20px); transition: all 0.3s ease; pointer-events: none;
+        }
+        .card:hover .swipe-actions { opacity: 1; transform: translateX(0); pointer-events: all; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 px-4 py-4 backdrop-blur-xl border-b" style="background: rgba(8,8,12,0.85); border-color: var(--border);">
+        <div class="max-w-lg mx-auto flex items-center justify-between relative" style="z-index:1;">
+            <button onclick="showToast('Halaman Beranda belum tersedia','info')" class="text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors" aria-label="Kembali">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+            </button>
+            <h1 class="font-display font-bold text-lg tracking-tight">Loker Keuangan</h1>
+            <button onclick="openAddModal()" class="text-sm font-semibold" style="color: var(--accent);" aria-label="Tambah loker baru">+ Tambah</button>
+        </div>
+    </header>
+
+    <!-- Ringkasan Statistik -->
+    <section class="max-w-lg mx-auto px-4 pt-6 pb-2 relative" style="z-index:1;" id="statsSection">
+        <!-- Diisi JS -->
+    </section>
+
+    <!-- Daftar Loker -->
+    <main class="max-w-lg mx-auto px-4 py-4 space-y-3 relative" style="z-index:1;" id="lokerList">
+        <!-- Diisi JS -->
+    </main>
+
+    <!-- Modal: Tambah Loker -->
+    <div class="modal-overlay" id="addModal" role="dialog" aria-modal="true" aria-label="Tambah Loker Baru">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="modal-handle"></div>
+            <h2 class="font-display font-bold text-xl mb-5">Loker Baru</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="input-label">Nama Loker</label>
+                    <input type="text" class="input-field" id="addName" placeholder="Contoh: Liburan Bali" maxlength="30" autocomplete="off">
+                </div>
+                <div>
+                    <label class="input-label">Target Tabungan</label>
+                    <input type="text" class="input-field font-display" id="addTarget" placeholder="Rp 0" inputmode="numeric" autocomplete="off">
+                </div>
+                <div>
+                    <label class="input-label">Ikon</label>
+                    <div class="flex flex-wrap gap-2" id="iconPicker">
+                        <!-- Diisi JS -->
+                    </div>
+                </div>
+                <div>
+                    <label class="input-label">Warna</label>
+                    <div class="flex flex-wrap gap-2" id="colorPicker">
+                        <!-- Diisi JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button class="btn btn-ghost flex-1" onclick="closeModal('addModal')">Batal</button>
+                <button class="btn btn-primary flex-1" onclick="addLoker()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detail & Aksi -->
+    <div class="modal-overlay" id="detailModal" role="dialog" aria-modal="true" aria-label="Detail Loker">
+        <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height: 85vh; overflow-y: auto;">
+            <div class="modal-handle"></div>
+            <div id="detailContent">
+                <!-- Diisi JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Tambah Dana -->
+    <div class="modal-overlay" id="fundModal" role="dialog" aria-modal="true" aria-label="Tambah Dana">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="modal-handle"></div>
+            <h2 class="font-display font-bold text-xl mb-1" id="fundTitle">Tambah Dana</h2>
+            <p class="text-sm mb-5" style="color: var(--fg-muted);" id="fundSubtitle"></p>
+            <div class="space-y-4">
+                <div>
+                    <label class="input-label">Jumlah</label>
+                    <input type="text" class="input-field font-display text-lg" id="fundAmount" placeholder="Rp 0" inputmode="numeric" autocomplete="off">
+                </div>
+                <div class="flex flex-wrap gap-2" id="quickAmounts">
+                    <!-- Diisi JS -->
+                </div>
+                <div>
+                    <label class="input-label">Catatan (opsional)</label>
+                    <input type="text" class="input-field" id="fundNote" placeholder="Contoh: Gaji bulanan" maxlength="50" autocomplete="off">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button class="btn btn-ghost flex-1" onclick="closeModal('fundModal')">Batal</button>
+                <button class="btn btn-primary flex-1" id="fundBtn" onclick="submitFund()">Masukkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Konfirmasi Hapus -->
+    <div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true" aria-label="Konfirmasi Hapus">
+        <div class="modal-sheet" onclick="event.stopPropagation()" style="text-align:center;">
+            <div class="modal-handle"></div>
+            <div class="text-5xl mb-4">🗑️</div>
+            <h2 class="font-display font-bold text-xl mb-2">Hapus Loker?</h2>
+            <p class="text-sm mb-6" style="color: var(--fg-muted);" id="deleteText">Tindakan ini tidak bisa dibatalkan.</p>
+            <div class="flex gap-3">
+                <button class="btn btn-ghost flex-1" onclick="closeModal('deleteModal')">Batal</button>
+                <button class="btn btn-danger flex-1" onclick="confirmDelete()">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t" style="background: rgba(8,8,12,0.92); border-color: var(--border);" role="navigation" aria-label="Navigasi utama">
+        <div class="max-w-lg mx-auto flex justify-around py-2 px-4">
+            <button class="nav-btn" onclick="showToast('Halaman Beranda belum tersedia','info')" aria-label="Beranda">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg><span>Beranda</span>
+            </button>
+            <button class="nav-btn active" aria-label="Loker" aria-current="page">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg><span>Loker</span>
+            </button>
+            <button class="nav-btn" onclick="showToast('Halaman Riwayat belum tersedia','info')" aria-label="Riwayat">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>Riwayat</span>
+            </button>
+            <button class="nav-btn" onclick="showToast('Halaman Profil belum tersedia','info')" aria-label="Profil">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg><span>Profil</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        /* =====================================================
+           DATA & STATE
+        ===================================================== */
+        const STORAGE_KEY = 'lokerData';
+        const HISTORY_KEY = 'lokerHistory';
+        const ICONS = ['🏠','🍲','🚌','🆘','✈️','🎓','💍','💊','🎮','📱','👕','💻','🐶','🎁','⚡','🔧','📚','🏋️','🎵','🚗','🌊','🍕','💡','🏥'];
+        const COLORS = ['#f59e0b','#22c55e','#8b5cf6','#ec4899','#06b6d4','#f97316','#14b8a6','#e11d48','#6366f1','#84cc16'];
+        const QUICK_AMOUNTS = [10000, 25000, 50000, 100000, 250000, 500000];
+
+        // State picker saat tambah loker
+        let selectedIcon = '🏠';
+        let selectedColor = '#f59e0b';
+        // State modal dana
+        let fundMode = 'add'; // 'add' atau 'withdraw'
+        let activeLokerId = null;
+        let deleteTargetId = null;
+
+        function loadData() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+            // Data default jika pertama kali
+            const defaults = [
+                { id: Date.now()-4, icon: '🏠', name: 'Kos Bulanan', current: 1200000, target: 1500000, color: '#f59e0b', createdAt: Date.now()-86400000*30 },
+                { id: Date.now()-3, icon: '🍲', name: 'Makan Mingguan', current: 350000, target: 500000, color: '#22c55e', createdAt: Date.now()-86400000*14 },
+                { id: Date.now()-2, icon: '🚌', name: 'Transportasi', current: 200000, target: 400000, color: '#8b5cf6', createdAt: Date.now()-86400000*7 },
+                { id: Date.now()-1, icon: '🆘', name: 'Dana Darurat', current: 3500000, target: 5000000, color: '#ec4899', createdAt: Date.now()-86400000*60 }
+            ];
+            saveData(defaults);
+            return defaults;
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadHistory() {
+            return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        }
+        function saveHistory(h) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+        }
+
+        /* =====================================================
+           FORMAT HELPERS
+        ===================================================== */
+        function formatCurrency(n) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
+        }
+        function formatShort(n) {
+            if (n >= 1000000000) return (n/1000000000).toFixed(1).replace('.0','') + 'M';
+            if (n >= 1000000) return (n/1000000).toFixed(1).replace('.0','') + 'Jt';
+            if (n >= 1000) return (n/1000).toFixed(0) + 'Rb';
+            return n.toString();
+        }
+        function parseCurrencyInput(str) {
+            return parseInt(str.replace(/[^0-9]/g, ''), 10) || 0;
+        }
+        function formatInputToCurrency(input) {
+            const raw = parseCurrencyInput(input.value);
+            input.value = raw > 0 ? 'Rp ' + new Intl.NumberFormat('id-ID').format(raw) : '';
+        }
+
+        /* =====================================================
+           TOAST
+        ===================================================== */
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            el.className = `toast toast-${type}`;
+            el.textContent = msg;
+            container.appendChild(el);
+            setTimeout(() => { el.classList.add('out'); }, 2500);
+            setTimeout(() => { el.remove(); }, 2900);
+        }
+
+        /* =====================================================
+           MODAL
+        ===================================================== */
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        // Tutup modal saat klik overlay
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.addEventListener('click', () => closeModal(m.id));
+        });
+        // Tutup dengan Escape
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+            }
+        });
+
+        /* =====================================================
+           RINGKASAN STATISTIK
+        ===================================================== */
+        function renderStats() {
+            const data = loadData();
+            const totalCurrent = data.reduce((s, l) => s + l.current, 0);
+            const totalTarget = data.reduce((s, l) => s + l.target, 0);
+            const overallPercent = totalTarget > 0 ? Math.round((totalCurrent / totalTarget) * 100) : 0;
+            const circumference = 2 * Math.PI * 40;
+            const dashoffset = circumference - (circumference * Math.min(overallPercent, 100) / 100);
+
+            document.getElementById('statsSection').innerHTML = `
+                <div class="card p-5" style="cursor:default;">
+                    <div class="flex items-center gap-5">
+                        <div class="stat-ring flex-shrink-0">
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" stroke-width="6"/>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="6"
+                                    stroke-linecap="round"
+                                    stroke-dasharray="${circumference}"
+                                    stroke-dashoffset="${dashoffset}"
+                                    style="transition: stroke-dashoffset 1.2s cubic-bezier(.22,.68,0,1);"/>
+                            </svg>
+                            <div class="stat-ring-text">
+                                <span class="font-display font-bold text-xl" style="color:var(--accent);">${overallPercent}%</span>
+                                <span class="text-[10px]" style="color:var(--fg-muted);">tercapai</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium" style="color:var(--fg-muted);">Total Tabungan</p>
+                            <p class="font-display font-bold text-2xl mt-1 truncate">${formatCurrency(totalCurrent)}</p>
+                            <p class="text-sm mt-1" style="color:var(--fg-muted);">dari ${formatCurrency(totalTarget)}</p>
+                            <p class="text-xs mt-2" style="color:var(--fg-muted);">${data.length} loker aktif</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* =====================================================
+           DAFTAR LOKER
+        ===================================================== */
+        function renderList() {
+            const data = loadData();
+            const container = document.getElementById('lokerList');
+
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20">
+                        <div class="empty-icon">🔒</div>
+                        <h3 class="font-display font-semibold text-lg mt-4" style="color:var(--fg-muted);">Belum ada loker</h3>
+                        <p class="text-sm mt-2" style="color:var(--fg-muted);">Mulai buat target tabungan pertamamu</p>
+                        <button class="btn btn-primary mt-6" onclick="openAddModal()">Buat Loker Baru</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = data.map((l, i) => {
+                const percent = Math.min(Math.round((l.current / l.target) * 100), 100);
+                const isComplete = l.current >= l.target;
+                const remaining = Math.max(l.target - l.current, 0);
+                return `
+                    <div class="card p-5" onclick="openDetail(${l.id})" onmousemove="trackMouse(event, this)" style="animation: fadeSlideUp 0.4s ${i * 0.08}s both cubic-bezier(.22,.68,0,1);">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="text-2xl flex-shrink-0">${l.icon}</span>
+                                <div class="min-w-0">
+                                    <h3 class="font-semibold truncate">${l.name}</h3>
+                                    <p class="text-xs truncate" style="color: var(--fg-muted);">Target: ${formatCurrency(l.target)}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                ${isComplete ? '<span class="text-xs font-bold px-2 py-1 rounded-full" style="background:rgba(34,197,94,0.15);color:#22c55e;">Selesai</span>' : ''}
+                                <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background: ${l.color}18; color: ${l.color};">${percent}%</span>
+                            </div>
+                        </div>
+                        <div class="w-full rounded-full h-2" style="background: var(--border);">
+                            <div class="progress-fill" data-width="${percent}" style="background: ${l.color};"></div>
+                        </div>
+                        <div class="flex items-center justify-between mt-3">
+                            <p class="font-display font-bold text-sm" style="color: ${l.color};">${formatCurrency(l.current)}</p>
+                            ${!isComplete ? `<p class="text-xs" style="color: var(--fg-muted);">kurang ${formatShort(remaining)}</p>` : '<p class="text-xs" style="color: #22c55e;">Target tercapai!</p>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Animasi progress bar setelah render
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    container.querySelectorAll('.progress-fill').forEach(bar => {
+                        bar.style.width = bar.dataset.width + '%';
+                    });
+                }, 100);
+            });
+        }
+
+        // Efek spotlight mengikuti mouse di kartu
+        function trackMouse(e, el) {
+            const rect = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - rect.left) / rect.width * 100) + '%');
+            el.style.setProperty('--my', ((e.clientY - rect.top) / rect.height * 100) + '%');
+        }
+
+        // Animasi fade-in untuk kartu
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `@keyframes fadeSlideUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }`;
+        document.head.appendChild(styleSheet);
+
+        /* =====================================================
+           MODAL TAMBAH LOKER
+        ===================================================== */
+        function openAddModal() {
+            selectedIcon = '🏠';
+            selectedColor = '#f59e0b';
+            document.getElementById('addName').value = '';
+            document.getElementById('addTarget').value = '';
+            renderIconPicker();
+            renderColorPicker();
+            openModal('addModal');
+            setTimeout(() => document.getElementById('addName').focus(), 400);
+        }
+
+        function renderIconPicker() {
+            document.getElementById('iconPicker').innerHTML = ICONS.map(ic => `
+                <button type="button" class="text-2xl p-1 rounded-lg transition-all ${ic === selectedIcon ? 'ring-2 ring-offset-2 scale-110' : 'opacity-50 hover:opacity-80'}"
+                    style="ring-color: var(--accent); ring-offset-color: var(--bg-elevated); ${ic === selectedIcon ? 'ring-color: var(--accent);' : ''}"
+                    onclick="selectIcon('${ic}')">${ic}</button>
+            `).join('');
+        }
+        function selectIcon(ic) { selectedIcon = ic; renderIconPicker(); }
+
+        function renderColorPicker() {
+            document.getElementById('colorPicker').innerHTML = COLORS.map(c => `
+                <button type="button" class="w-8 h-8 rounded-full transition-all ${c === selectedColor ? 'ring-2 ring-offset-2 scale-110' : 'opacity-60 hover:opacity-90'}"
+                    style="background:${c}; ${c === selectedColor ? 'ring-color:' + c + '; ring-offset-color: var(--bg-elevated);' : ''}"
+                    onclick="selectColor('${c}')"></button>
+            `).join('');
+        }
+        function selectColor(c) { selectedColor = c; renderColorPicker(); }
+
+        function addLoker() {
+            const name = document.getElementById('addName').value.trim();
+            const targetStr = document.getElementById('addTarget').value;
+            const target = parseCurrencyInput(targetStr);
+
+            if (!name) { showToast('Nama loker tidak boleh kosong', 'error'); document.getElementById('addName').focus(); return; }
+            if (target < 1000) { showToast('Target minimal Rp 1.000', 'error'); document.getElementById('addTarget').focus(); return; }
+
+            const data = loadData();
+            data.push({
+                id: Date.now(),
+                icon: selectedIcon,
+                name: name,
+                current: 0,
+                target: target,
+                color: selectedColor,
+                createdAt: Date.now()
+            });
+            saveData(data);
+            closeModal('addModal');
+            renderAll();
+            showToast(`Loker "${name}" berhasil dibuat`, 'success');
+        }
+
+        /* =====================================================
+           MODAL DETAIL LOKER
+        ===================================================== */
+        function openDetail(id) {
+            const data = loadData();
+            const l = data.find(x => x.id === id);
+            if (!l) return;
+            activeLokerId = id;
+
+            const percent = Math.min(Math.round((l.current / l.target) * 100), 100);
+            const isComplete = l.current >= l.target;
+            const remaining = Math.max(l.target - l.current, 0);
+            const history = loadHistory().filter(h => h.lokerId === id).slice(-5).reverse();
+
+            document.getElementById('detailContent').innerHTML = `
+                <div class="flex items-center gap-4 mb-5">
+                    <span class="text-4xl">${l.icon}</span>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="font-display font-bold text-xl truncate">${l.name}</h2>
+                        <p class="text-sm" style="color:var(--fg-muted);">Dibuat ${new Date(l.createdAt).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' })}</p>
+                    </div>
+                </div>
+
+                <!-- Ring progress besar -->
+                <div class="flex justify-center mb-5">
+                    <div class="stat-ring" style="width:130px;height:130px;">
+                        <svg width="130" height="130" viewBox="0 0 130 130">
+                            <circle cx="65" cy="65" r="54" fill="none" stroke="var(--border)" stroke-width="7"/>
+                            <circle cx="65" cy="65" r="54" fill="none" stroke="${l.color}" stroke-width="7"
+                                stroke-linecap="round"
+                                stroke-dasharray="${2*Math.PI*54}"
+                                stroke-dashoffset="${2*Math.PI*54 - (2*Math.PI*54 * percent / 100)}"
+                                style="transition: stroke-dashoffset 1s cubic-bezier(.22,.68,0,1);"/>
+                        </svg>
+                        <div class="stat-ring-text">
+                            <span class="font-display font-bold text-2xl" style="color:${l.color};">${percent}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Angka -->
+                <div class="grid grid-cols-2 gap-3 mb-5">
+                    <div class="text-center p-3 rounded-xl" style="background:var(--card);">
+                        <p class="text-xs" style="color:var(--fg-muted);">Terkumpul</p>
+                        <p class="font-display font-bold mt-1" style="color:${l.color};">${formatCurrency(l.current)}</p>
+                    </div>
+                    <div class="text-center p-3 rounded-xl" style="background:var(--card);">
+                        <p class="text-xs" style="color:var(--fg-muted);">${isComplete ? 'Lebih' : 'Kurang'}</p>
+                        <p class="font-display font-bold mt-1" style="color:${isComplete ? '#22c55e' : 'var(--fg-muted)'};">${formatCurrency(isComplete ? l.current - l.target : remaining)}</p>
+                    </div>
+                </div>
+
+                <!-- Tombol aksi -->
+                <div class="grid grid-cols-2 gap-3 mb-5">
+                    <button class="btn btn-primary" onclick="openFundModal(${id},'add')">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Tambah Dana
+                    </button>
+                    ${l.current > 0 ? `
+                    <button class="btn btn-ghost" onclick="openFundModal(${id},'withdraw')" style="color:#f87171; border-color: rgba(248,113,113,0.2);">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15"/></svg>
+                        Ambil Dana
+                    </button>` : `
+                    <button class="btn btn-ghost opacity-40 cursor-not-allowed" disabled>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15"/></svg>
+                        Ambil Dana
+                    </button>`}
+                </div>
+
+                ${isComplete ? `<div class="text-center p-3 rounded-xl mb-5" style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.15);">
+                    <p class="text-sm font-semibold" style="color:#22c55e;">Target tercapai! Selamat!</p>
+                </div>` : ''}
+
+                <!-- Riwayat terakhir -->
+                ${history.length > 0 ? `
+                <div>
+                    <h4 class="text-sm font-semibold mb-3" style="color:var(--fg-muted);">Riwayat Terakhir</h4>
+                    <div class="space-y-2">
+                        ${history.map(h => `
+                            <div class="flex items-center justify-between p-3 rounded-xl" style="background:var(--card);">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="text-lg">${h.type === 'add' ? '📥' : '📤'}</span>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium truncate">${h.note || (h.type === 'add' ? 'Setoran' : 'Penarikan')}</p>
+                                        <p class="text-xs" style="color:var(--fg-muted);">${new Date(h.date).toLocaleDateString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</p>
+                                    </div>
+                                </div>
+                                <span class="font-display font-semibold text-sm flex-shrink-0" style="color:${h.type === 'add' ? '#22c55e' : '#f87171'};">${h.type === 'add' ? '+' : '-'}${formatCurrency(h.amount)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>` : ''}
+
+                <!-- Tombol edit & hapus -->
+                <div class="flex gap-3 mt-5 pt-4" style="border-top:1px solid var(--border);">
+                    <button class="btn btn-ghost btn-sm flex-1" onclick="openEditModal(${id})">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
+                        Edit
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-1" onclick="openDeleteConfirm(${id})">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                        Hapus
+                    </button>
+                </div>
+            `;
+            openModal('detailModal');
+        }
+
+        /* =====================================================
+           MODAL EDIT LOKER
+        ===================================================== */
+        function openEditModal(id) {
+            const data = loadData();
+            const l = data.find(x => x.id === id);
+            if (!l) return;
+            // Tutup detail, buka add modal dengan data terisi
+            closeModal('detailModal');
+            selectedIcon = l.icon;
+            selectedColor = l.color;
+            setTimeout(() => {
+                document.getElementById('addName').value = l.name;
+                document.getElementById('addTarget').value = 'Rp ' + new Intl.NumberFormat('id-ID').format(l.target);
+                renderIconPicker();
+                renderColorPicker();
+                // Ubah tombol jadi "Update"
+                const modal = document.getElementById('addModal');
+                modal.querySelector('h2').textContent = 'Edit Loker';
+                modal.querySelector('.btn-primary').textContent = 'Update';
+                modal.querySelector('.btn-primary').onclick = () => updateLoker(id);
+                openModal('addModal');
+            }, 350);
+        }
+
+        function updateLoker(id) {
+            const name = document.getElementById('addName').value.trim();
+            const target = parseCurrencyInput(document.getElementById('addTarget').value);
+            if (!name) { showToast('Nama tidak boleh kosong', 'error'); return; }
+            if (target < 1000) { showToast('Target minimal Rp 1.000', 'error'); return; }
+
+            const data = loadData();
+            const idx = data.findIndex(x => x.id === id);
+            if (idx < 0) return;
+            data[idx].name = name;
+            data[idx].target = target;
+            data[idx].icon = selectedIcon;
+            data[idx].color = selectedColor;
+            saveData(data);
+
+            // Reset modal ke mode tambah
+            const modal = document.getElementById('addModal');
+            modal.querySelector('h2').textContent = 'Loker Baru';
+            modal.querySelector('.btn-primary').textContent = 'Simpan';
+            modal.querySelector('.btn-primary').onclick = addLoker;
+
+            closeModal('addModal');
+            renderAll();
+            showToast('Loker berhasil diperbarui', 'success');
+        }
+
+        /* =====================================================
+           MODAL TAMBAH/AMBIL DANA
+        ===================================================== */
+        function openFundModal(id, mode) {
+            closeModal('detailModal');
+            fundMode = mode;
+            activeLokerId = id;
+            const data = loadData();
+            const l = data.find(x => x.id === id);
+            if (!l) return;
+
+            setTimeout(() => {
+                document.getElementById('fundTitle').textContent = mode === 'add' ? 'Tambah Dana' : 'Ambil Dana';
+                document.getElementById('fundSubtitle').textContent = `${l.icon} ${l.name} — Saldo: ${formatCurrency(l.current)}`;
+                document.getElementById('fundAmount').value = '';
+                document.getElementById('fundNote').value = '';
+                document.getElementById('fundBtn').textContent = mode === 'add' ? 'Masukkan' : 'Ambil';
+                document.getElementById('fundBtn').className = `btn ${mode === 'add' ? 'btn-primary' : 'btn-danger'} flex-1`;
+
+                // Quick amounts
+                const maxQuick = mode === 'add' ? Math.max(l.target - l.current, 0) : l.current;
+                document.getElementById('quickAmounts').innerHTML = QUICK_AMOUNTS
+                    .filter(a => a <= maxQuick || mode === 'add')
+                    .map(a => `<button type="button" class="chip" onclick="setQuickAmount(${a})">${formatShort(a)}</button>`).join('');
+
+                openModal('fundModal');
+                setTimeout(() => document.getElementById('fundAmount').focus(), 400);
+            }, 350);
+        }
+
+        function setQuickAmount(val) {
+            const input = document.getElementById('fundAmount');
+            input.value = 'Rp ' + new Intl.NumberFormat('id-ID').format(val);
+            // Visual feedback pada chip
+            document.querySelectorAll('#quickAmounts .chip').forEach(c => c.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function submitFund() {
+            const amount = parseCurrencyInput(document.getElementById('fundAmount').value);
+            const note = document.getElementById('fundNote').value.trim();
+            const data = loadData();
+            const idx = data.findIndex(x => x.id === activeLokerId);
+            if (idx < 0) return;
+
+            if (amount < 1000) { showToast('Jumlah minimal Rp 1.000', 'error'); return; }
+
+            if (fundMode === 'add') {
+                data[idx].current += amount;
+                if (data[idx].current >= data[idx].target) {
+                    showToast(`Selamat! Target "${data[idx].name}" tercapai!`, 'success');
+                } else {
+                    showToast(`${formatCurrency(amount)} berhasil ditambahkan`, 'success');
+                }
+            } else {
+                if (amount > data[idx].current) { showToast('Saldo tidak mencukupi', 'error'); return; }
+                data[idx].current -= amount;
+                showToast(`${formatCurrency(amount)} berhasil diambil`, 'info');
+            }
+
+            saveData(data);
+
+            // Simpan riwayat
+            const history = loadHistory();
+            history.push({
+                lokerId: activeLokerId,
+                type: fundMode,
+                amount: amount,
+                note: note,
+                date: Date.now()
+            });
+            saveHistory(history);
+
+            closeModal('fundModal');
+            renderAll();
+        }
+
+        /* =====================================================
+           HAPUS LOKER
+        ===================================================== */
+        function openDeleteConfirm(id) {
+            closeModal('detailModal');
+            deleteTargetId = id;
+            const data = loadData();
+            const l = data.find(x => x.id === id);
+            document.getElementById('deleteText').textContent = l ? `"${l.name}" beserta seluruh riwayatnya akan dihapus permanen.` : 'Tindakan ini tidak bisa dibatalkan.';
+            setTimeout(() => openModal('deleteModal'), 350);
+        }
+
+        function confirmDelete() {
+            if (!deleteTargetId) return;
+            let data = loadData();
+            const l = data.find(x => x.id === deleteTargetId);
+            const name = l ? l.name : '';
+            data = data.filter(x => x.id !== deleteTargetId);
+            saveData(data);
+            // Hapus riwayat terkait
+            let history = loadHistory().filter(h => h.lokerId !== deleteTargetId);
+            saveHistory(history);
+            deleteTargetId = null;
+            closeModal('deleteModal');
+            renderAll();
+            showToast(`"${name}" berhasil dihapus`, 'info');
+        }
+
+        /* =====================================================
+           FORMAT INPUT OTOMATIS
+        ===================================================== */
+        document.getElementById('addTarget').addEventListener('input', function() { formatInputToCurrency(this); });
+        document.getElementById('fundAmount').addEventListener('input', function() {
+            formatInputToCurrency(this);
+            // Hapus selection chip saat mengetik manual
+            document.querySelectorAll('#quickAmounts .chip').forEach(c => c.classList.remove('selected'));
+        });
+
+        /* =====================================================
+           RENDER SEMUA
+        ===================================================== */
+        function renderAll() {
+            renderStats();
+            renderList();
+        }
+
+        // Inisialisasi
+        document.addEventListener('DOMContentLoaded', renderAll);
+    </script>
+</body>
+</html>
