@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - Loker Keuangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #08080c; --bg-elevated: #101018; --fg: #f4f4f6; --fg-muted: #71717a;
+            --accent: #f59e0b; --accent-dim: rgba(245,158,11,0.12); --card: #14141c;
+            --card-hover: #1c1c26; --border: #27272f; --danger: #ef4444; --success: #22c55e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--fg);
+            min-height: 100vh; padding-bottom: 100px; overflow-x: hidden;
+        }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Atmosfer */
+        .profile-glow {
+            position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
+            width: 500px; height: 500px; border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-dim) 0%, transparent 65%);
+            pointer-events: none; z-index: 0;
+            animation: pulseGlow 6s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%,100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+        }
+        .bg-blob-2 {
+            position: fixed; bottom: -100px; right: -80px; width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 65%);
+            pointer-events: none; z-index: 0;
+            animation: floatBlob 20s ease-in-out infinite alternate;
+        }
+        @keyframes floatBlob {
+            0% { transform: translate(0,0); } 100% { transform: translate(-30px,-20px); }
+        }
+
+        /* Avatar */
+        .avatar-ring {
+            width: 96px; height: 96px; border-radius: 50%; padding: 3px;
+            background: conic-gradient(from 0deg, var(--accent), #ec4899, #8b5cf6, #06b6d4, var(--accent));
+            animation: spinRing 8s linear infinite;
+        }
+        @keyframes spinRing { to { transform: rotate(360deg); } }
+        .avatar-inner {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: var(--bg-elevated); display: flex; align-items: center;
+            justify-content: center; font-size: 36px; position: relative; overflow: hidden;
+        }
+        .avatar-edit {
+            position: absolute; bottom: 0; right: 0; width: 28px; height: 28px;
+            border-radius: 50%; background: var(--accent); display: flex;
+            align-items: center; justify-content: center; cursor: pointer;
+            border: 2px solid var(--bg-elevated);
+            transition: transform 0.2s ease;
+        }
+        .avatar-edit:hover { transform: scale(1.15); }
+
+        /* Kartu */
+        .card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+            transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover { background: var(--card-hover); }
+
+        .stat-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 16px; text-align: center; transition: all 0.25s ease; cursor: default;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+        /* Tombol */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: 14px;
+            border: none; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-primary:hover { box-shadow: 0 8px 24px rgba(245,158,11,0.35); }
+        .btn-ghost { background: transparent; color: var(--fg-muted); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--bg-elevated); color: var(--fg); }
+        .btn-danger { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
+
+        /* Menu item */
+        .menu-item {
+            display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+            border-radius: 14px; cursor: pointer; transition: background 0.2s ease;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.03); }
+        .menu-item:active { background: rgba(255,255,255,0.05); }
+        .menu-icon {
+            width: 40px; height: 40px; border-radius: 12px; display: flex;
+            align-items: center; justify-content: center; flex-shrink: 0;
+        }
+
+        /* Toggle switch — FIX: aksesibilitas keyboard & ARIA */
+        .toggle-track {
+            width: 48px; height: 26px; border-radius: 999px; background: var(--border);
+            cursor: pointer; transition: background 0.3s ease; position: relative; flex-shrink: 0;
+        }
+        .toggle-track.on { background: var(--accent); }
+        .toggle-thumb {
+            width: 22px; height: 22px; border-radius: 50%; background: white;
+            position: absolute; top: 2px; left: 2px;
+            transition: transform 0.3s cubic-bezier(.22,.68,0,1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .toggle-track.on .toggle-thumb { transform: translateX(22px); }
+        .toggle-track:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+        /* Achievement badge */
+        .badge {
+            width: 64px; height: 64px; border-radius: 16px; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: 2px; transition: all 0.25s ease; cursor: default; position: relative;
+        }
+        .badge.unlocked { background: var(--card); border: 1px solid var(--border); }
+        .badge.locked { background: var(--card); border: 1px dashed var(--border); opacity: 0.4; }
+        .badge.unlocked:hover { transform: translateY(-4px) scale(1.08); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        .badge-tooltip {
+            position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+            padding: 6px 12px; border-radius: 8px; background: var(--bg-elevated); border: 1px solid var(--border);
+            font-size: 11px; white-space: nowrap; pointer-events: none;
+            opacity: 0; transition: opacity 0.2s ease; z-index: 10;
+        }
+        .badge:hover .badge-tooltip { opacity: 1; }
+
+        /* Bar chart */
+        .bar-col {
+            display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1;
+        }
+        .bar-track {
+            width: 100%; max-width: 32px; height: 100px; border-radius: 8px;
+            background: var(--border); position: relative; overflow: hidden;
+        }
+        .bar-fill {
+            position: absolute; bottom: 0; left: 0; right: 0; border-radius: 8px;
+            transition: height 1s cubic-bezier(.22,.68,0,1);
+        }
+
+        /* Health score ring */
+        .score-ring { position: relative; width: 80px; height: 80px; }
+        .score-ring svg { transform: rotate(-90deg); }
+        .score-ring-text {
+            position: absolute; inset: 0; display: flex; align-items: center;
+            justify-content: center; flex-direction: column;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end;
+            justify-content: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-sheet {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-bottom: none;
+            border-radius: 24px 24px 0 0; width: 100%; max-width: 520px;
+            padding: 24px 20px 32px; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(.22,.68,0,1);
+        }
+        .modal-overlay.open .modal-sheet { transform: translateY(0); }
+        .modal-handle { width: 36px; height: 4px; border-radius: 999px; background: var(--border); margin: 0 auto 20px; }
+
+        .input-field {
+            width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--card); color: var(--fg); font-size: 15px;
+            font-family: 'DM Sans', sans-serif; outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+        .input-field::placeholder { color: var(--fg-muted); }
+        .input-label { display: block; font-size: 13px; font-weight: 600; color: var(--fg-muted); margin-bottom: 6px; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast {
+            padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+            pointer-events: all; animation: toastIn 0.4s cubic-bezier(.22,.68,0,1) forwards;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4); white-space: nowrap;
+        }
+        .toast.out { animation: toastOut 0.3s ease forwards; }
+        .toast-success { background: #14532d; color: #86efac; border: 1px solid #166534; }
+        .toast-error { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+        .toast-info { background: #1c1917; color: #fbbf24; border: 1px solid #44403c; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(-12px) scale(0.95); } }
+
+        /* Nav */
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 8px 16px; color: var(--fg-muted); transition: color 0.2s ease;
+            border-radius: 12px; background: none; border: none; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn svg { width: 22px; height: 22px; }
+        .nav-btn span { font-size: 11px; font-weight: 500; }
+
+        /* Color picker dots */
+        .color-dot {
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease; border: 3px solid transparent;
+        }
+        .color-dot:hover { transform: scale(1.15); }
+        .color-dot.selected { border-color: var(--fg); box-shadow: 0 0 0 2px var(--bg), 0 0 12px currentColor; }
+
+        /* Section title */
+        .section-title {
+            font-size: 13px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--fg-muted); padding: 0 4px;
+        }
+
+        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes countPop { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+        .anim-pop { animation: countPop 0.5s cubic-bezier(.22,.68,0,1) both; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-glow"></div>
+    <div class="bg-blob-2"></div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 px-4 py-4 backdrop-blur-xl border-b" style="background: rgba(8,8,12,0.85); border-color: var(--border);">
+        <div class="max-w-lg mx-auto flex items-center justify-between relative" style="z-index:1;">
+            <button onclick="history.back()" class="text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors" aria-label="Kembali">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+            </button>
+            <h1 class="font-display font-bold text-lg tracking-tight">Profil</h1>
+            <div style="width:24px;"></div>
+        </div>
+    </header>
+
+    <!-- Profil Header -->
+    <section class="max-w-lg mx-auto px-4 pt-8 pb-4 text-center relative" style="z-index:1;" id="profileHeader"></section>
+
+    <!-- Skor Kesehatan Keuangan -->
+    <section class="max-w-lg mx-auto px-4 pb-4 relative" style="z-index:1;" id="healthSection"></section>
+
+    <!-- Statistik Cepat -->
+    <section class="max-w-lg mx-auto px-4 pb-4 relative" style="z-index:1;" id="quickStats"></section>
+
+    <!-- Grafik Tabungan Bulanan -->
+    <section class="max-w-lg mx-auto px-4 pb-5 relative" style="z-index:1;" id="chartSection"></section>
+
+    <!-- Pencapaian -->
+    <section class="max-w-lg mx-auto px-4 pb-5 relative" style="z-index:1;" id="achievementSection"></section>
+
+    <!-- Pengaturan -->
+    <section class="max-w-lg mx-auto px-4 pb-5 relative" style="z-index:1;">
+        <p class="section-title mb-3">Preferensi</p>
+        <div class="card p-2" id="settingsList"></div>
+    </section>
+
+    <!-- Manajemen Data -->
+    <section class="max-w-lg mx-auto px-4 pb-5 relative" style="z-index:1;">
+        <p class="section-title mb-3">Data</p>
+        <div class="card p-2" id="dataList"></div>
+    </section>
+
+    <!-- Info Aplikasi -->
+    <section class="max-w-lg mx-auto px-4 pb-8 relative" style="z-index:1;">
+        <div class="text-center py-6">
+            <p class="font-display font-bold text-sm" style="color:var(--fg-muted);">Loker Keuangan</p>
+            <p class="text-xs mt-1" style="color:var(--border);">v1.0.0 · Dibuat dengan dedikasi</p>
+        </div>
+    </section>
+
+    <!-- Modal: Edit Profil -->
+    <div class="modal-overlay" id="editProfileModal" role="dialog" aria-modal="true" aria-label="Edit Profil">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="modal-handle"></div>
+            <h2 class="font-display font-bold text-xl mb-5">Edit Profil</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="input-label" for="editName">Nama</label>
+                    <!-- FIX: tambah id for label -->
+                    <input type="text" class="input-field" id="editName" placeholder="Namamu" maxlength="24" autocomplete="off">
+                </div>
+                <div>
+                    <label class="input-label">Avatar</label>
+                    <div class="flex flex-wrap gap-3" id="avatarPicker"></div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button class="btn btn-ghost flex-1" onclick="closeModal('editProfileModal')">Batal</button>
+                <!-- FIX: ganti saveProfile() → saveProfileEdit() untuk menghilangkan konflik nama fungsi -->
+                <button class="btn btn-primary flex-1" onclick="saveProfileEdit()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Konfirmasi Reset -->
+    <div class="modal-overlay" id="resetModal" role="dialog" aria-modal="true" aria-label="Konfirmasi Reset">
+        <div class="modal-sheet" onclick="event.stopPropagation()" style="text-align:center;">
+            <div class="modal-handle"></div>
+            <div class="text-5xl mb-4" aria-hidden="true">⚠️</div>
+            <h2 class="font-display font-bold text-xl mb-2" id="resetTitle">Reset Semua Data?</h2>
+            <p class="text-sm mb-6" style="color:var(--fg-muted);" id="resetText">Semua loker dan riwayat transaksi akan dihapus permanen.</p>
+            <div class="flex gap-3">
+                <button class="btn btn-ghost flex-1" onclick="closeModal('resetModal')">Batal</button>
+                <button class="btn btn-danger flex-1" id="resetBtn" onclick="confirmReset()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t" style="background: rgba(8,8,12,0.92); border-color: var(--border);" role="navigation" aria-label="Navigasi utama">
+        <div class="max-w-lg mx-auto flex justify-around py-2 px-4">
+            <button class="nav-btn" onclick="location.href='index.html'" aria-label="Beranda">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg><span>Beranda</span>
+            </button>
+            <button class="nav-btn" onclick="location.href='loker.html'" aria-label="Loker">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg><span>Loker</span>
+            </button>
+            <button class="nav-btn" onclick="location.href='riwayat.html'" aria-label="Riwayat">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>Riwayat</span>
+            </button>
+            <button class="nav-btn active" aria-label="Profil" aria-current="page">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg><span>Profil</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        /* =====================================================
+           DATA & STATE
+        ===================================================== */
+        const STORAGE_KEY  = 'lokerData';
+        const HISTORY_KEY  = 'lokerHistory';
+        const PROFILE_KEY  = 'lokerProfile';
+        const SETTINGS_KEY = 'lokerSettings';
+
+        const AVATARS = ['😀','😎','🤓','🧑‍💻','👩‍💻','🦊','🐱','🐶','🦁','🐼','🦄','🐸','🌟','🔥','💎','🍀','🎯','🎨','🚀','🧩'];
+        const ACCENT_COLORS = [
+            { name: 'Amber',   value: '#f59e0b' },
+            { name: 'Hijau',   value: '#22c55e' },
+            { name: 'Ungu',    value: '#8b5cf6' },
+            { name: 'Pink',    value: '#ec4899' },
+            { name: 'Cyan',    value: '#06b6d4' },
+            { name: 'Oranye',  value: '#f97316' },
+            { name: 'Teal',    value: '#14b8a6' },
+            { name: 'Merah',   value: '#e11d48' },
+        ];
+
+        let selectedAvatar = '😀';
+        let resetMode = '';          // 'full' atau 'history'
+        let _lastFocusedEl = null;   // untuk focus trap modal
+
+        /* =====================================================
+           FIX: localStorage dengan try/catch di semua fungsi
+        ===================================================== */
+        function loadData() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+            catch { console.warn('loadData: data corrupt, reset ke []'); return []; }
+        }
+        function loadHistory() {
+            try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+            catch { console.warn('loadHistory: data corrupt, reset ke []'); return []; }
+        }
+        function loadProfile() {
+            try {
+                return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null') || {
+                    name: 'Pengguna', avatar: '😀', joinDate: Date.now()
+                };
+            } catch {
+                return { name: 'Pengguna', avatar: '😀', joinDate: Date.now() };
+            }
+        }
+        /* FIX: ganti nama agar tidak konflik dengan saveProfileEdit() */
+        function persistProfile(p) {
+            try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+            catch { showToast('Gagal menyimpan profil (storage penuh?)', 'error'); }
+        }
+        function loadSettings() {
+            try {
+                return JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null') || {
+                    accent: '#f59e0b', notifications: true, compact: false
+                };
+            } catch {
+                return { accent: '#f59e0b', notifications: true, compact: false };
+            }
+        }
+        function persistSettings(s) {
+            try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+            catch { showToast('Gagal menyimpan pengaturan (storage penuh?)', 'error'); }
+        }
+        function saveData(d) {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+            catch { showToast('Gagal menyimpan data (storage penuh?)', 'error'); }
+        }
+        function saveHistory(h) {
+            try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }
+            catch { showToast('Gagal menyimpan riwayat (storage penuh?)', 'error'); }
+        }
+
+        /* =====================================================
+           FIX: Escape HTML untuk mencegah XSS via innerHTML
+        ===================================================== */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        /* =====================================================
+           FIX: Kalkulasi streak hari BERTURUT-TURUT yang benar
+           (versi lama hanya menghitung jumlah hari unik, bukan konsekutif)
+        ===================================================== */
+        function calcStreak() {
+            const history = loadHistory();
+            const deposits = history.filter(h => h.type === 'add');
+            if (deposits.length === 0) return 0;
+
+            // Normalisasi ke midnight (abaikan jam/menit)
+            const uniqueDayTimestamps = [...new Set(
+                deposits.map(h => {
+                    const d = new Date(h.date);
+                    d.setHours(0, 0, 0, 0);
+                    return d.getTime();
+                })
+            )].sort((a, b) => b - a); // Descending: terbaru duluan
+
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const todayMs     = today.getTime();
+            const yesterdayMs = todayMs - 86400000;
+
+            // Streak hanya valid jika hari ini ATAU kemarin ada setoran
+            const latestDay = uniqueDayTimestamps[0];
+            if (latestDay !== todayMs && latestDay !== yesterdayMs) return 0;
+
+            let streak    = 0;
+            let checkMs   = latestDay;
+            const daySet  = new Set(uniqueDayTimestamps);
+
+            for (let i = 0; i < 365; i++) {
+                if (daySet.has(checkMs)) {
+                    streak++;
+                    checkMs -= 86400000;
+                } else {
+                    break;
+                }
+            }
+            return streak;
+        }
+
+        /* =====================================================
+           FORMAT HELPERS
+        ===================================================== */
+        function formatCurrency(n) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
+        }
+        function formatShort(n) {
+            if (n >= 1000000000) return (n / 1000000000).toFixed(1).replace('.0', '') + 'M';
+            if (n >= 1000000)    return (n / 1000000).toFixed(1).replace('.0', '') + 'Jt';
+            if (n >= 1000)       return (n / 1000).toFixed(0) + 'Rb';
+            return n.toString();
+        }
+        function getGreeting() {
+            const h = new Date().getHours();
+            if (h < 5)  return 'Selamat Malam';
+            if (h < 11) return 'Selamat Pagi';
+            if (h < 15) return 'Selamat Siang';
+            if (h < 18) return 'Selamat Sore';
+            return 'Selamat Malam';
+        }
+        function getJoinDuration() {
+            const profile = loadProfile();
+            const days = Math.floor((Date.now() - profile.joinDate) / 86400000);
+            if (days < 1)  return 'Baru saja bergabung';
+            if (days < 30) return `${days} hari menggunakan`;
+            const months = Math.floor(days / 30);
+            if (months < 12) return `${months} bulan menggunakan`;
+            const years = Math.floor(months / 12);
+            const rem   = months % 12;
+            return rem > 0 ? `${years} tahun ${rem} bulan` : `${years} tahun menggunakan`;
+        }
+
+        /* =====================================================
+           TOAST
+        ===================================================== */
+        function showToast(msg, type = 'success') {
+            const c  = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            el.className   = `toast toast-${type}`;
+            el.textContent = msg;
+            c.appendChild(el);
+            setTimeout(() => el.classList.add('out'),  2500);
+            setTimeout(() => el.remove(),              2900);
+        }
+
+        /* =====================================================
+           FIX: Modal dengan focus trap agar aksesibel
+        ===================================================== */
+        function getFocusableElements(container) {
+            return [...container.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            )].filter(el => !el.disabled && el.offsetParent !== null);
+        }
+
+        function openModal(id) {
+            _lastFocusedEl = document.activeElement;
+            const overlay = document.getElementById(id);
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            // Fokus ke elemen pertama dalam modal setelah animasi
+            setTimeout(() => {
+                const focusable = getFocusableElements(overlay);
+                if (focusable.length) focusable[0].focus();
+            }, 420);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+            document.body.style.overflow = '';
+            // Kembalikan fokus ke elemen sebelum modal dibuka
+            if (_lastFocusedEl) { _lastFocusedEl.focus(); _lastFocusedEl = null; }
+        }
+
+        // Tutup modal saat klik overlay
+        document.querySelectorAll('.modal-overlay').forEach(m =>
+            m.addEventListener('click', () => closeModal(m.id))
+        );
+
+        // FIX: Tambah focus trap (Tab / Shift+Tab terkunci dalam modal)
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+                return;
+            }
+            if (e.key !== 'Tab') return;
+            const openModal = document.querySelector('.modal-overlay.open');
+            if (!openModal) return;
+            const focusable = getFocusableElements(openModal);
+            if (!focusable.length) return;
+            const first = focusable[0];
+            const last  = focusable[focusable.length - 1];
+            if (e.shiftKey) {
+                if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+            } else {
+                if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
+        });
+
+        /* =====================================================
+           PROFIL HEADER
+        ===================================================== */
+        function renderProfileHeader() {
+            const profile = loadProfile();
+            // FIX: escapeHtml pada nama sebelum dimasukkan ke innerHTML
+            document.getElementById('profileHeader').innerHTML = `
+                <div class="flex flex-col items-center" style="animation: fadeSlideUp 0.5s both;">
+                    <div class="avatar-ring mb-4">
+                        <div class="avatar-inner">
+                            <span id="avatarDisplay" aria-hidden="true">${escapeHtml(profile.avatar)}</span>
+                            <button class="avatar-edit" onclick="openEditProfile()" aria-label="Edit profil">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="#000" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <h2 class="font-display font-bold text-2xl">${escapeHtml(profile.name)}</h2>
+                    <p class="text-sm mt-1" style="color:var(--fg-muted);">${escapeHtml(getGreeting())}!</p>
+                    <p class="text-xs mt-1" style="color:var(--border);">${escapeHtml(getJoinDuration())}</p>
+                </div>
+            `;
+        }
+
+        /* =====================================================
+           SKOR KESEHATAN KEUANGAN
+        ===================================================== */
+        function calcHealthScore() {
+            const lokers  = loadData();
+            const history = loadHistory();
+            if (lokers.length === 0) return { score: 0, label: 'Belum Ada Data', color: 'var(--fg-muted)' };
+
+            let score = 0;
+
+            // 1. Konsistensi menabung (0–30)
+            const deposits = history.filter(h => h.type === 'add');
+            if (deposits.length > 0) {
+                const dates     = [...new Set(deposits.map(d => new Date(d.date).toDateString()))];
+                const totalDays = Math.max(Math.floor((Date.now() - Math.min(...deposits.map(d => d.date))) / 86400000), 1);
+                score += Math.round(Math.min(dates.length / totalDays, 1) * 30);
+            }
+
+            // 2. Progress rata-rata (0–30)
+            const avgProgress = lokers.reduce((s, l) => s + Math.min(l.current / l.target, 1), 0) / lokers.length;
+            score += Math.round(avgProgress * 30);
+
+            // 3. Target tercapai (0–20)
+            const completedCount = lokers.filter(l => l.current >= l.target).length;
+            score += Math.min(Math.round((completedCount / lokers.length) * 20), 20);
+
+            // 4. Disiplin tidak menarik (0–20)
+            const withdrawals    = history.filter(h => h.type === 'withdraw');
+            const withdrawRatio  = deposits.length > 0 ? withdrawals.length / deposits.length : 0;
+            score += Math.round(Math.max(0, 1 - withdrawRatio) * 20);
+
+            score = Math.min(score, 100);
+
+            let label, color;
+            if (score >= 80)      { label = 'Sangat Sehat';      color = '#22c55e'; }
+            else if (score >= 60) { label = 'Sehat';             color = '#22c55e'; }
+            else if (score >= 40) { label = 'Cukup';             color = '#f59e0b'; }
+            else if (score >= 20) { label = 'Perlu Perhatian';   color = '#f97316'; }
+            else                  { label = 'Mulai Menabung';    color = '#ef4444'; }
+
+            return { score, label, color };
+        }
+
+        function renderHealthScore() {
+            const { score, label, color } = calcHealthScore();
+            const circumference = 2 * Math.PI * 32;
+            const dashoffset    = circumference - (circumference * score / 100);
+
+            const tip = score >= 60
+                ? 'Kamu sudah on track! Pertahankan konsistensi menabungmu.'
+                : score >= 30
+                    ? 'Coba tingkatkan frekuensi menabung dan kurangi penarikan.'
+                    : 'Ayo mulai buat loker dan biasakan menabung rutin!';
+
+            document.getElementById('healthSection').innerHTML = `
+                <div class="card p-5" style="animation: fadeSlideUp 0.5s 0.1s both;">
+                    <div class="flex items-center gap-5">
+                        <div class="score-ring flex-shrink-0" role="img" aria-label="Skor keuangan ${score} dari 100">
+                            <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+                                <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" stroke-width="5"/>
+                                <circle cx="40" cy="40" r="32" fill="none" stroke="${color}" stroke-width="5"
+                                    stroke-linecap="round"
+                                    stroke-dasharray="${circumference}"
+                                    stroke-dashoffset="${circumference}"
+                                    id="healthRing"/>
+                            </svg>
+                            <div class="score-ring-text" aria-hidden="true">
+                                <span class="font-display font-bold text-lg" style="color:${color};" id="healthScoreNum">0</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-semibold uppercase tracking-wider" style="color:var(--fg-muted);">Skor Keuangan</p>
+                            <p class="font-display font-bold text-lg mt-1" style="color:${color};">${escapeHtml(label)}</p>
+                            <p class="text-xs mt-2 leading-relaxed" style="color:var(--fg-muted);">${escapeHtml(tip)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    const ring = document.getElementById('healthRing');
+                    if (ring) {
+                        ring.style.transition = 'stroke-dashoffset 1.5s cubic-bezier(.22,.68,0,1)';
+                        ring.style.strokeDashoffset = dashoffset;
+                    }
+                    animateCounter('healthScoreNum', score, 1200);
+                }, 200);
+            });
+        }
+
+        function animateCounter(elId, target, duration) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            const start = performance.now();
+            function update(now) {
+                const progress = Math.min((now - start) / duration, 1);
+                const eased    = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(eased * target);
+                if (progress < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
+        }
+
+        /* =====================================================
+           STATISTIK CEPAT
+           FIX: gunakan calcStreak() yang benar
+        ===================================================== */
+        function renderQuickStats() {
+            const lokers         = loadData();
+            const history        = loadHistory();
+            const totalSaved     = lokers.reduce((s, l) => s + l.current, 0);
+            const completedLokers = lokers.filter(l => l.current >= l.target).length;
+            const streak         = calcStreak(); // FIX: streak konsekutif yang benar
+
+            const stats = [
+                { label: 'Total Tabungan',  value: formatShort(totalSaved),  icon: '💰', color: '#f59e0b' },
+                { label: 'Loker Aktif',     value: lokers.length,             icon: '🔒', color: '#8b5cf6' },
+                { label: 'Target Tercapai', value: completedLokers,           icon: '🏆', color: '#22c55e' },
+                { label: 'Streak Hari',     value: streak,                    icon: '🔥', color: '#f97316' },
+            ];
+
+            document.getElementById('quickStats').innerHTML = `
+                <div class="grid grid-cols-2 gap-3">
+                    ${stats.map((s, i) => `
+                        <div class="stat-card" style="animation: fadeSlideUp 0.4s ${0.15 + i * 0.08}s both;">
+                            <span class="text-2xl" aria-hidden="true">${s.icon}</span>
+                            <p class="font-display font-bold text-xl mt-2 anim-pop"
+                               style="color:${s.color}; animation-delay:${0.3 + i * 0.1}s;">${escapeHtml(String(s.value))}</p>
+                            <p class="text-[11px] mt-1" style="color:var(--fg-muted);">${escapeHtml(s.label)}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        /* =====================================================
+           GRAFIK TABUNGAN BULANAN
+        ===================================================== */
+        function renderChart() {
+            const history = loadHistory();
+            const now     = new Date();
+            const months  = [];
+
+            for (let i = 5; i >= 0; i--) {
+                const d          = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const monthStart = d.getTime();
+                const monthEnd   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
+                const total      = history
+                    .filter(h => h.type === 'add' && h.date >= monthStart && h.date <= monthEnd)
+                    .reduce((s, h) => s + h.amount, 0);
+                months.push({ label: d.toLocaleDateString('id-ID', { month: 'short' }), value: total });
+            }
+
+            const maxVal  = Math.max(...months.map(m => m.value), 1);
+            const hasData = months.some(m => m.value > 0);
+            const grandTotal = months.reduce((s, m) => s + m.value, 0);
+
+            document.getElementById('chartSection').innerHTML = `
+                <p class="section-title mb-3">Tabungan 6 Bulan Terakhir</p>
+                <div class="card p-5" style="animation: fadeSlideUp 0.4s 0.3s both;">
+                    ${hasData ? `
+                    <div class="flex items-end gap-2" style="height: 120px;" role="img" aria-label="Grafik batang tabungan 6 bulan terakhir">
+                        ${months.map(m => {
+                            const height = Math.max((m.value / maxVal) * 100, 4);
+                            return `
+                                <div class="bar-col">
+                                    <div class="bar-track" title="${escapeHtml(m.label)}: ${formatCurrency(m.value)}">
+                                        <div class="bar-fill" data-height="${height}" style="background: var(--accent); height: 0;"></div>
+                                    </div>
+                                    <span class="text-[10px] font-semibold" style="color:var(--fg-muted);">${escapeHtml(m.label)}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="flex justify-between mt-3">
+                        <span class="text-xs" style="color:var(--fg-muted);">Total: <strong style="color:var(--fg);">${formatShort(grandTotal)}</strong></span>
+                        <span class="text-xs" style="color:var(--accent);">Tertinggi: ${formatShort(maxVal)}</span>
+                    </div>
+                    ` : `
+                    <div class="text-center py-6">
+                        <span class="text-3xl opacity-30" aria-hidden="true">📊</span>
+                        <p class="text-sm mt-2" style="color:var(--fg-muted);">Belum ada data tabungan</p>
+                    </div>
+                    `}
+                </div>
+            `;
+
+            if (hasData) {
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        document.querySelectorAll('.bar-fill').forEach(bar => {
+                            bar.style.height = bar.dataset.height + '%';
+                        });
+                    }, 300);
+                });
+            }
+        }
+
+        /* =====================================================
+           PENCAPAIAN
+           FIX: streak badge kini pakai calcStreak() konsekutif
+        ===================================================== */
+        function calcAchievements() {
+            const lokers         = loadData();
+            const history        = loadHistory();
+            const deposits       = history.filter(h => h.type === 'add');
+            const totalDeposited = deposits.reduce((s, h) => s + h.amount, 0);
+            const completedLokers = lokers.filter(l => l.current >= l.target).length;
+            const streak         = calcStreak(); // FIX: konsekutif
+
+            return [
+                { id: 'first_loker',    icon: '🌟', name: 'Langkah Pertama', desc: 'Buat loker pertama',        unlocked: lokers.length >= 1 },
+                { id: 'first_deposit',  icon: '📥', name: 'Nabung Pertama',  desc: 'Lakukan setoran pertama',   unlocked: deposits.length >= 1 },
+                { id: 'three_lokers',   icon: '💼', name: 'Kolektor',        desc: 'Punya 3 loker aktif',       unlocked: lokers.length >= 3 },
+                { id: 'five_lokers',    icon: '🏦', name: 'Pengelola Pro',   desc: 'Punya 5 loker aktif',       unlocked: lokers.length >= 5 },
+                { id: 'first_complete', icon: '🎯', name: 'Tepat Sasaran',   desc: 'Capai target pertama',      unlocked: completedLokers >= 1 },
+                { id: 'three_complete', icon: '🏆', name: 'Triple Crown',    desc: 'Capai 3 target',            unlocked: completedLokers >= 3 },
+                { id: 'million',        icon: '💰', name: 'Jutawan',         desc: 'Total tabungan 1 juta',     unlocked: totalDeposited >= 1000000 },
+                { id: 'ten_million',    icon: '💎', name: 'Decamillionaire', desc: 'Total tabungan 10 juta',    unlocked: totalDeposited >= 10000000 },
+                { id: 'five_deposits',  icon: '🔄', name: 'Rajin',           desc: '5 kali menabung',           unlocked: deposits.length >= 5 },
+                { id: 'twenty_deposits',icon: '⚡', name: 'Mesin Nabung',    desc: '20 kali menabung',          unlocked: deposits.length >= 20 },
+                { id: 'week_streak',    icon: '🔥', name: 'Konsisten',       desc: 'Streak 7 hari berturut',    unlocked: streak >= 7 },
+                { id: 'month_streak',   icon: '🌟', name: 'Tak Terbendung',  desc: 'Streak 30 hari berturut',   unlocked: streak >= 30 },
+            ];
+        }
+
+        function renderAchievements() {
+            const achievements = calcAchievements();
+            const unlocked     = achievements.filter(a => a.unlocked).length;
+
+            document.getElementById('achievementSection').innerHTML = `
+                <div class="flex items-center justify-between mb-3">
+                    <p class="section-title">Pencapaian</p>
+                    <span class="text-xs font-semibold" style="color:var(--accent);" aria-label="${unlocked} dari ${achievements.length} pencapaian terbuka">${unlocked}/${achievements.length}</span>
+                </div>
+                <div class="card p-4" style="animation: fadeSlideUp 0.4s 0.4s both;">
+                    <div class="w-full rounded-full h-1.5 mb-4" style="background:var(--border);" role="progressbar"
+                         aria-valuenow="${unlocked}" aria-valuemin="0" aria-valuemax="${achievements.length}"
+                         aria-label="Progress pencapaian">
+                        <div class="h-1.5 rounded-full transition-all duration-1000"
+                             style="width:${(unlocked / achievements.length) * 100}%; background: var(--accent);"></div>
+                    </div>
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        ${achievements.map(a => `
+                            <div class="badge ${a.unlocked ? 'unlocked' : 'locked'}"
+                                 role="img"
+                                 aria-label="${escapeHtml(a.name)}: ${escapeHtml(a.desc)}${a.unlocked ? ' (terbuka)' : ' (terkunci)'}">
+                                <span class="text-xl" aria-hidden="true">${a.icon}</span>
+                                <div class="badge-tooltip">${escapeHtml(a.name)}: ${escapeHtml(a.desc)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        /* =====================================================
+           PENGATURAN
+           FIX: tambah role="switch" & aria-checked pada toggle
+               tambah dukungan keyboard (Enter/Space)
+        ===================================================== */
+        function renderSettings() {
+            const settings = loadSettings();
+
+            document.getElementById('settingsList').innerHTML = `
+                <!-- Warna Aksen -->
+                <div class="menu-item" style="cursor:default;" role="group" aria-label="Pilih warna aksen">
+                    <div class="menu-icon" style="background:var(--accent-dim);" aria-hidden="true">
+                        <svg class="w-5 h-5" style="color:var(--accent);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold">Warna Aksen</p>
+                        <p class="text-xs" style="color:var(--fg-muted);">Sesuaikan tampilan</p>
+                    </div>
+                    <div class="flex gap-2">
+                        ${ACCENT_COLORS.map(c => `
+                            <button class="color-dot ${settings.accent === c.value ? 'selected' : ''}"
+                                 style="background:${c.value}; color:${c.value};"
+                                 onclick="setAccentColor('${c.value}')"
+                                 aria-label="Warna ${c.name}${settings.accent === c.value ? ' (aktif)' : ''}"></button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div style="height:1px; background:var(--border); margin:4px 16px;" role="separator"></div>
+
+                <!-- Notifikasi -->
+                <div class="menu-item" onclick="toggleSetting('notifications')"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSetting('notifications');}"
+                     tabindex="0" role="button" aria-pressed="${settings.notifications}">
+                    <div class="menu-icon" style="background:rgba(34,197,94,0.12);" aria-hidden="true">
+                        <svg class="w-5 h-5" style="color:#22c55e;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold">Notifikasi</p>
+                        <p class="text-xs" style="color:var(--fg-muted);">Pengingat menabung harian</p>
+                    </div>
+                    <div class="toggle-track ${settings.notifications ? 'on' : ''}"
+                         role="switch" aria-checked="${settings.notifications}"
+                         aria-label="Notifikasi" id="toggleNotif" tabindex="-1">
+                        <div class="toggle-thumb"></div>
+                    </div>
+                </div>
+
+                <!-- Tampilan Kompak -->
+                <div class="menu-item" onclick="toggleSetting('compact')"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSetting('compact');}"
+                     tabindex="0" role="button" aria-pressed="${settings.compact}">
+                    <div class="menu-icon" style="background:rgba(139,92,246,0.12);" aria-hidden="true">
+                        <svg class="w-5 h-5" style="color:#8b5cf6;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold">Tampilan Kompak</p>
+                        <p class="text-xs" style="color:var(--fg-muted);">Kartu lebih ringkas</p>
+                    </div>
+                    <div class="toggle-track ${settings.compact ? 'on' : ''}"
+                         role="switch" aria-checked="${settings.compact}"
+                         aria-label="Tampilan Kompak" id="toggleCompact" tabindex="-1">
+                        <div class="toggle-thumb"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleSetting(key) {
+            const settings = loadSettings();
+            settings[key]  = !settings[key];
+            persistSettings(settings); // FIX: ganti saveSettings → persistSettings
+            renderSettings();
+            const labels = { notifications: 'Notifikasi', compact: 'Tampilan Kompak' };
+            showToast(`${labels[key]} ${settings[key] ? 'diaktifkan' : 'dinonaktifkan'}`, 'info');
+        }
+
+        function setAccentColor(color) {
+            const settings = loadSettings();
+            settings.accent = color;
+            persistSettings(settings); // FIX
+            applyAccentColor(color);
+            renderSettings();
+            const name = ACCENT_COLORS.find(c => c.value === color)?.name || '';
+            showToast(`Warna aksen: ${name}`, 'success');
+        }
+
+        function applyAccentColor(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            document.documentElement.style.setProperty('--accent-dim', color + '1a');
+            const glow = document.querySelector('.profile-glow');
+            if (glow) glow.style.background =
+                `radial-gradient(circle, ${color}1a 0%, transparent 65%)`;
+        }
+
+        /* =====================================================
+           MANAJEMEN DATA
+        ===================================================== */
+        function renderDataMenu() {
+            const history  = loadHistory();
+            const lokers   = loadData();
+            const rawSize  = new Blob([
+                localStorage.getItem(STORAGE_KEY)  || '',
+                localStorage.getItem(HISTORY_KEY)  || '',
+                localStorage.getItem(PROFILE_KEY)  || '',
+                localStorage.getItem(SETTINGS_KEY) || ''
+            ]).size;
+            const sizeStr = rawSize < 1024 ? rawSize + ' B'
+                          : rawSize < 1048576 ? (rawSize / 1024).toFixed(1) + ' KB'
+                          : (rawSize / 1048576).toFixed(1) + ' MB';
+
+            document.getElementById('dataList').innerHTML = `
+                <div class="menu-item" onclick="exportAllData()" tabindex="0"
+                     onkeydown="if(event.key==='Enter')exportAllData()" role="button">
+                    <div class="menu-icon" style="background:rgba(6,182,212,0.12);" aria-hidden="true">
+                        <svg class="w-5 h-5" style="color:#06b6d4;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold">Ekspor Semua Data</p>
+                        <p class="text-xs" style="color:var(--fg-muted);">Unduh backup JSON lengkap</p>
+                    </div>
+                    <svg class="w-4 h-4" style="color:var(--fg-muted);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+                </div>
+
+                <div class="menu-item" onclick="document.getElementById('importFile').click()" tabindex="0"
+                     onkeydown="if(event.key==='Enter')document.getElementById('importFile').click()" role="button">
+                    <div class="menu-icon" style="background:rgba(132,204,22,0.12);" aria-hidden="true">
+                        <svg class="w-5 h-5" style="color:#84cc16;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold">Impor Data</p>
+                        <p class="text-xs" style="color:var(--fg-muted);">Pulihkan dari file JSON</p>
+                    </div>
+                    <svg class="w-4 h-4" style="color:var(--fg-muted);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+                </div>
+                <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+
+                <div style="height:1px; background:var(--border); margin:4px 16px;" role="separator"></div>
+
+                <div class="menu-item" onclick="openResetConfirm('history')" tabindex="0"
+                     onkeydown="if(event.key==='Enter')openResetConfirm('history')" role="button">
+                    <div class="menu-icon" style="background:rgba(249,115,22,0.12);" aria-hidden="true">
+                        <svg class="w-5 h-5" style="color:#f97316;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold">Hapus Riwayat</p>
+                        <p class="text-xs" style="color:var(--fg-muted);">${history.length} transaksi</p>
+                    </div>
+                    <svg class="w-4 h-4" style="color:var(--fg-muted);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+                </div>
+
+                <div class="menu-item" onclick="openResetConfirm('full')" tabindex="0"
+                     onkeydown="if(event.key==='Enter')openResetConfirm('full')" role="button">
+                    <div class="menu-icon" style="background:rgba(239,68,68,0.12);" aria-hidden="true">
+                        <svg class="w-5 h-5" style="color:#ef4444;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold" style="color:#ef4444;">Reset Semua Data</p>
+                        <p class="text-xs" style="color:var(--fg-muted);">Hapus loker, riwayat, dan profil</p>
+                    </div>
+                    <svg class="w-4 h-4" style="color:var(--fg-muted);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+                </div>
+
+                <div style="height:1px; background:var(--border); margin:4px 16px;" role="separator"></div>
+
+                <div class="menu-item" style="cursor:default;" aria-label="Info penyimpanan">
+                    <div class="flex-1">
+                        <p class="text-xs" style="color:var(--fg-muted);">
+                            Penyimpanan lokal: <strong style="color:var(--fg);">${sizeStr}</strong>
+                        </p>
+                        <p class="text-xs mt-0.5" style="color:var(--border);">
+                            ${lokers.length} loker · ${history.length} transaksi
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* =====================================================
+           EDIT PROFIL
+        ===================================================== */
+        function openEditProfile() {
+            const profile  = loadProfile();
+            selectedAvatar = profile.avatar;
+            document.getElementById('editName').value = profile.name;
+            renderAvatarPicker();
+            openModal('editProfileModal');
+            setTimeout(() => document.getElementById('editName').focus(), 420);
+        }
+
+        function renderAvatarPicker() {
+            document.getElementById('avatarPicker').innerHTML = AVATARS.map(a => `
+                <button type="button"
+                    class="text-2xl p-1.5 rounded-lg transition-all ${a === selectedAvatar ? 'ring-2 ring-offset-2 scale-110' : 'opacity-50 hover:opacity-80'}"
+                    style="${a === selectedAvatar ? 'ring-color: var(--accent); ring-offset-color: var(--bg-elevated);' : ''}"
+                    aria-label="Avatar ${a}${a === selectedAvatar ? ' (dipilih)' : ''}"
+                    aria-pressed="${a === selectedAvatar}"
+                    onclick="selectAvatar('${a}')">${a}</button>
+            `).join('');
+        }
+
+        function selectAvatar(a) { selectedAvatar = a; renderAvatarPicker(); }
+
+        /* FIX: Fungsi ini HANYA menangani UI modal.
+           Nama diubah dari saveProfile() → saveProfileEdit()
+           agar tidak konflik dengan persistProfile() (lapisan data). */
+        function saveProfileEdit() {
+            const name = document.getElementById('editName').value.trim();
+            if (!name) { showToast('Nama tidak boleh kosong', 'error'); return; }
+            const profile  = loadProfile();
+            profile.name   = name;
+            profile.avatar = selectedAvatar;
+            persistProfile(profile); // FIX: panggil persistProfile, bukan saveProfile (yang sudah dihapus)
+            closeModal('editProfileModal');
+            renderAll();
+            showToast('Profil berhasil diperbarui', 'success');
+        }
+
+        /* =====================================================
+           EKSPOR / IMPOR
+           FIX: validasi struktur data lebih ketat saat impor
+        ===================================================== */
+        function exportAllData() {
+            const data = {
+                version:    '1.0.0',
+                exportedAt: new Date().toISOString(),
+                profile:    loadProfile(),
+                settings:   loadSettings(),
+                lokers:     loadData(),
+                history:    loadHistory()
+            };
+            try {
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement('a');
+                a.href     = url;
+                a.download = `loker-backup-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Backup berhasil diunduh', 'success');
+            } catch (err) {
+                showToast('Gagal mengekspor: ' + err.message, 'error');
+            }
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // FIX: validasi ukuran file (maks 5 MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('File terlalu besar (maks 5 MB)', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            const reader    = new FileReader();
+            reader.onload   = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    // FIX: validasi struktur lebih ketat
+                    if (!Array.isArray(data.lokers))  throw new Error('Field "lokers" harus berupa array');
+                    if (!Array.isArray(data.history)) throw new Error('Field "history" harus berupa array');
+
+                    // Validasi setiap item loker
+                    data.lokers.forEach((l, i) => {
+                        if (typeof l.current !== 'number' || typeof l.target !== 'number') {
+                            throw new Error(`Item loker ke-${i + 1} tidak valid`);
+                        }
+                    });
+
+                    // Validasi setiap item history
+                    data.history.forEach((h, i) => {
+                        if (!['add', 'withdraw'].includes(h.type) || typeof h.amount !== 'number') {
+                            throw new Error(`Item riwayat ke-${i + 1} tidak valid`);
+                        }
+                    });
+
+                    saveData(data.lokers);
+                    saveHistory(data.history);
+                    if (data.profile && typeof data.profile.name === 'string') persistProfile(data.profile);
+                    if (data.settings && typeof data.settings.accent === 'string') {
+                        persistSettings(data.settings);
+                        applyAccentColor(data.settings.accent);
+                    }
+
+                    renderAll();
+                    showToast(`Data dipulihkan (${data.history.length} transaksi)`, 'success');
+                } catch (err) {
+                    showToast('File tidak valid: ' + err.message, 'error');
+                }
+            };
+            reader.onerror = () => showToast('Gagal membaca file', 'error');
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        /* =====================================================
+           RESET
+        ===================================================== */
+        function openResetConfirm(mode) {
+            resetMode = mode;
+            if (mode === 'full') {
+                document.getElementById('resetTitle').textContent = 'Reset Semua Data?';
+                document.getElementById('resetText').textContent  = 'Semua loker, riwayat transaksi, dan profil akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.';
+            } else {
+                document.getElementById('resetTitle').textContent = 'Hapus Semua Riwayat?';
+                document.getElementById('resetText').textContent  = 'Semua riwayat transaksi akan dihapus. Data loker dan saldo tidak akan berubah.';
+            }
+            openModal('resetModal');
+        }
+
+        function confirmReset() {
+            if (resetMode === 'full') {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(HISTORY_KEY);
+                localStorage.removeItem(PROFILE_KEY);
+                localStorage.removeItem(SETTINGS_KEY);
+                applyAccentColor('#f59e0b');
+                showToast('Semua data berhasil direset', 'info');
+            } else {
+                localStorage.removeItem(HISTORY_KEY);
+                showToast('Riwayat berhasil dihapus', 'info');
+            }
+            closeModal('resetModal');
+            renderAll();
+        }
+
+        /* =====================================================
+           RENDER SEMUA
+        ===================================================== */
+        function renderAll() {
+            const settings = loadSettings();
+            applyAccentColor(settings.accent || '#f59e0b');
+            renderProfileHeader();
+            renderHealthScore();
+            renderQuickStats();
+            renderChart();
+            renderAchievements();
+            renderSettings();
+            renderDataMenu();
+        }
+
+        document.addEventListener('DOMContentLoaded', renderAll);
+    </script>
+</body>
+</html>
