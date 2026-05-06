@@ -20,7 +20,6 @@
         }
         .font-display { font-family: 'Space Grotesk', sans-serif; }
 
-        /* Background Glow */
         body::before {
             content: ''; position: fixed; top: -40%; left: -20%; width: 80vw; height: 80vw;
             background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 60%);
@@ -32,7 +31,6 @@
             pointer-events: none; z-index: 0;
         }
 
-        /* Card */
         .auth-card {
             position: relative; z-index: 1; width: 100%; max-width: 420px;
             background: var(--bg-elevated); border: 1px solid var(--border);
@@ -44,42 +42,40 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Input */
         .input-group { margin-bottom: 18px; }
-        .input-label { display: block; font-size: 13px; font-weight: 600; color: var(--fg-muted); margin-bottom: 6px; }
+        .input-label {
+            display: block; font-size: 13px; font-weight: 600;
+            color: var(--fg-muted); margin-bottom: 6px;
+        }
         .input-field {
-            width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
-            background: var(--card); color: var(--fg); font-size: 15px;
-            font-family: 'DM Sans', sans-serif; outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            width: 100%; padding: 14px 16px; border-radius: 12px;
+            border: 1px solid var(--border); background: var(--card);
+            color: var(--fg); font-size: 15px; font-family: 'DM Sans', sans-serif;
+            outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
         .input-field::placeholder { color: var(--fg-muted); }
         .input-field[aria-invalid="true"] { border-color: var(--danger); }
 
-        /* Button */
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 15px;
-            border: none; cursor: pointer; transition: all 0.2s ease;
-            font-family: 'DM Sans', sans-serif; text-decoration: none;
+            width: 100%; padding: 14px; border-radius: 12px; font-weight: 700;
+            font-size: 15px; border: none; cursor: pointer; transition: all 0.2s ease;
+            font-family: 'DM Sans', sans-serif;
         }
         .btn-primary { background: var(--accent); color: #000; }
         .btn-primary:hover:not(:disabled) { box-shadow: 0 8px 28px rgba(245,158,11,0.4); }
         .btn-primary:active:not(:disabled) { transform: scale(0.97); }
-        /* FIX: Loading state */
         .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-ghost { background: transparent; color: var(--fg-muted); border: 1px solid var(--border); }
         .btn-ghost:hover { background: var(--bg-elevated); color: var(--fg); }
 
-        /* Error & Success */
         .error-msg {
             color: var(--danger); font-size: 13px; margin-top: 6px;
             display: none; align-items: center; gap: 5px;
         }
         .error-msg.show { display: flex; animation: fadeSlideUp 0.3s ease; }
 
-        /* Avatar Picker */
         .avatar-option {
             font-size: 28px; padding: 6px; border-radius: 10px; cursor: pointer;
             transition: all 0.2s ease; border: 2px solid transparent;
@@ -92,15 +88,13 @@
         }
         .avatar-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-        /* Password strength bar */
         .strength-bar {
             height: 3px; border-radius: 999px; background: var(--border);
             margin-top: 8px; overflow: hidden;
         }
         .strength-fill {
             height: 100%; border-radius: 999px;
-            transition: width 0.3s ease, background 0.3s ease;
-            width: 0%;
+            transition: width 0.3s ease, background 0.3s ease; width: 0%;
         }
         .strength-label {
             font-size: 11px; margin-top: 4px; font-weight: 600;
@@ -111,8 +105,6 @@
             from { opacity: 0; transform: translateY(8px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-
-        /* Spinner */
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner {
             width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.3);
@@ -120,13 +112,32 @@
             animation: spin 0.7s linear infinite; flex-shrink: 0;
         }
 
-        /* Responsive */
+        /* Toggle show/hide password */
+        .pass-wrapper { position: relative; }
+        .pass-toggle {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer; padding: 4px;
+            color: var(--fg-muted); transition: color 0.2s ease; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .pass-toggle:hover { color: var(--fg); }
+        .pass-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+        .pass-wrapper .input-field { padding-right: 44px; }
+
+        .link-accent {
+            color: var(--accent); font-weight: 600; text-decoration: none;
+            transition: opacity 0.2s ease;
+        }
+        .link-accent:hover { opacity: 0.8; text-decoration: underline; }
+
         @media (max-width: 480px) {
             .auth-card { padding: 30px 20px; border-radius: 20px; }
         }
-
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
@@ -145,7 +156,7 @@
         </div>
 
         <!-- Form -->
-        <form id="registerForm" onsubmit="handleRegister(event)" novalidate>
+        <form id="registerForm" novalidate>
 
             <!-- Nama -->
             <div class="input-group">
@@ -155,7 +166,6 @@
                     placeholder="Huruf, angka, spasi (2–24 karakter)"
                     maxlength="24" autocomplete="off"
                     aria-describedby="nameError" aria-required="true">
-                <!-- FIX: ikon error untuk keterbacaan -->
                 <p class="error-msg" id="nameError" role="alert" aria-live="polite">
                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                     <span id="nameErrorText"></span>
@@ -165,34 +175,54 @@
             <!-- Password -->
             <div class="input-group">
                 <label class="input-label" for="regPassword">Kata Sandi</label>
-                <input
-                    type="password" class="input-field" id="regPassword"
-                    placeholder="Minimal 4 karakter"
-                    maxlength="64" autocomplete="new-password"
-                    aria-describedby="passError passStrengthLabel" aria-required="true"
-                    oninput="updateStrength(this.value)">
-                <!-- FIX: Password strength indicator -->
+                <div class="pass-wrapper">
+                    <input
+                        type="password" class="input-field" id="regPassword"
+                        placeholder="Minimal 4 karakter"
+                        maxlength="64" autocomplete="new-password"
+                        aria-describedby="passError passStrengthLabel" aria-required="true">
+                    <button type="button" class="pass-toggle" id="togglePass" aria-label="Tampilkan kata sandi">
+                        <svg id="eyeOpen" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <svg id="eyeClosed" class="w-5 h-5" style="display:none;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="strength-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Kekuatan kata sandi" id="strengthBar">
                     <div class="strength-fill" id="strengthFill"></div>
                 </div>
                 <p class="strength-label" id="passStrengthLabel" style="color:var(--fg-muted);">—</p>
                 <p class="error-msg" id="passError" role="alert" aria-live="polite">
                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-                    <span>Kata sandi minimal 4 karakter</span>
+                    <span id="passErrorText"></span>
                 </p>
             </div>
 
             <!-- Konfirmasi Password -->
             <div class="input-group">
                 <label class="input-label" for="regConfirm">Konfirmasi Kata Sandi</label>
-                <input
-                    type="password" class="input-field" id="regConfirm"
-                    placeholder="Ulangi kata sandi"
-                    maxlength="64" autocomplete="new-password"
-                    aria-describedby="confirmError" aria-required="true">
+                <div class="pass-wrapper">
+                    <input
+                        type="password" class="input-field" id="regConfirm"
+                        placeholder="Ulangi kata sandi"
+                        maxlength="64" autocomplete="new-password"
+                        aria-describedby="confirmError" aria-required="true">
+                    <button type="button" class="pass-toggle" id="toggleConfirm" aria-label="Tampilkan konfirmasi kata sandi">
+                        <svg class="eye-open w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <svg class="eye-closed w-5 h-5" style="display:none;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
+                        </svg>
+                    </button>
+                </div>
                 <p class="error-msg" id="confirmError" role="alert" aria-live="polite">
                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-                    <span>Kata sandi tidak cocok</span>
+                    <span id="confirmErrorText"></span>
                 </p>
             </div>
 
@@ -202,7 +232,7 @@
                 <div class="flex flex-wrap gap-2" id="avatarPicker" role="radiogroup" aria-labelledby="avatarLabel"></div>
             </div>
 
-            <!-- FIX: Error umum (ganti alert()) -->
+            <!-- Error umum -->
             <p class="error-msg" id="generalError" role="alert" aria-live="assertive" style="margin-bottom: 12px;">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                 <span id="generalErrorText"></span>
@@ -217,11 +247,13 @@
         <!-- Link ke Login -->
         <p class="text-center text-sm mt-6" style="color:var(--fg-muted);">
             Sudah punya akun?
-            <a href="login.html" style="color:var(--accent); font-weight:600;">Masuk di sini</a>
+            <a href="login.html" class="link-accent">Masuk di sini</a>
         </p>
 
-        <!-- Kembali -->
-        <a href="index.html" class="btn btn-ghost mt-4">Kembali ke Beranda</a>
+        <!-- Kembali — pakai button, bukan <a> dengan class btn -->
+        <button type="button" class="btn btn-ghost mt-4" onclick="location.href='index.html'">
+            Kembali ke Beranda
+        </button>
     </div>
 
     <script>
@@ -230,35 +262,38 @@
         ===================================================== */
         const AVATARS   = ['😀','😎','🤓','🧑‍💻','👩‍💻','🦊','🐱','🐶','🦁','🐼','🦄','🐸','🌟','🔥','💎','🍀','🎯','🎨','🚀','🧩'];
         const USERS_KEY = 'lokerUsers';
-
-        // FIX: Prefix key untuk mencegah prototype pollution
-        // Misal nama "constructor" akan disimpan sebagai "u:constructor"
         const KEY_PREFIX = 'u:';
 
         let selectedAvatar = '😀';
 
         /* =====================================================
-           FIX: Hash password dengan Web Crypto API (SHA-256)
-           Password TIDAK pernah disimpan dalam bentuk plaintext
+           PBKDF2 HASHING — salted, slow, jauh lebih aman
+           dari SHA-256 langsung untuk keperluan password
         ===================================================== */
-        async function hashPassword(password) {
-            const encoder    = new TextEncoder();
-            const data       = encoder.encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray  = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        async function hashPassword(password, salt) {
+            const encoder = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']
+            );
+            const bits = await crypto.subtle.deriveBits(
+                { name: 'PBKDF2', salt: encoder.encode(salt), iterations: 100000, hash: 'SHA-256' },
+                keyMaterial, 256
+            );
+            return Array.from(new Uint8Array(bits))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
         }
 
         /* =====================================================
-           FIX: escapeHtml — cegah XSS jika nama dirender di innerHTML
+           SANITIZASI
         ===================================================== */
         function escapeHtml(str) {
             return String(str)
-                .replace(/&/g,  '&amp;')
-                .replace(/</g,  '&lt;')
-                .replace(/>/g,  '&gt;')
-                .replace(/"/g,  '&quot;')
-                .replace(/'/g,  '&#039;');
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         /* =====================================================
@@ -275,17 +310,14 @@
         }
 
         /* =====================================================
-           FIX: Cek keberadaan user dengan Object.hasOwn()
-           Aman dari prototype pollution (vs `users[name]` atau `users.hasOwnProperty`)
+           CEK USER — Object.hasOwn + prefix anti pollution
         ===================================================== */
         function userExists(users, normalizedName) {
             return Object.hasOwn(users, KEY_PREFIX + normalizedName);
         }
 
         /* =====================================================
-           VALIDASI NAMA
-           Hanya izinkan huruf (termasuk aksara), angka, dan spasi.
-           Karakter berbahaya (<, >, ", ', &, dll.) ditolak.
+           VALIDASI NAMA — regex Unicode, spasi dikontrol
         ===================================================== */
         const NAME_REGEX = /^[\p{L}\p{N} ]{2,24}$/u;
 
@@ -293,7 +325,19 @@
             if (!name || name.length < 2)  return 'Nama minimal 2 karakter';
             if (name.length > 24)          return 'Nama maksimal 24 karakter';
             if (!NAME_REGEX.test(name))    return 'Nama hanya boleh berisi huruf, angka, dan spasi';
-            return null; // valid
+            if (/^\s|\s$/.test(name))      return 'Nama tidak boleh diawali atau diakhiri spasi';
+            return null;
+        }
+
+        /* =====================================================
+           NORMALISASI NAMA
+           - lowercase untuk perbandingan case-insensitive
+           - collapse multiple spaces → satu spasi
+           - trim leading/trailing
+           Mencegah "Admin  User" vs "Admin User" duplikat
+        ===================================================== */
+        function normalizeName(raw) {
+            return raw.toLowerCase().replace(/\s+/g, ' ').trim();
         }
 
         /* =====================================================
@@ -310,17 +354,17 @@
             if (/[^A-Za-z0-9]/.test(pass)) score += 10;
             score = Math.min(score, 100);
 
-            if (score < 30)  return { score, label: 'Lemah',    color: '#ef4444' };
-            if (score < 60)  return { score, label: 'Cukup',    color: '#f97316' };
-            if (score < 80)  return { score, label: 'Kuat',     color: '#f59e0b' };
-            return             { score, label: 'Sangat Kuat', color: '#22c55e' };
+            if (score < 30) return { score, label: 'Lemah',       color: '#ef4444' };
+            if (score < 60) return { score, label: 'Cukup',       color: '#f97316' };
+            if (score < 80) return { score, label: 'Kuat',        color: '#f59e0b' };
+            return             { score, label: 'Sangat Kuat',  color: '#22c55e' };
         }
 
         function updateStrength(value) {
             const { score, label, color } = calcStrength(value);
-            const fill  = document.getElementById('strengthFill');
-            const lbl   = document.getElementById('passStrengthLabel');
-            const bar   = document.getElementById('strengthBar');
+            const fill = document.getElementById('strengthFill');
+            const lbl  = document.getElementById('passStrengthLabel');
+            const bar  = document.getElementById('strengthBar');
             fill.style.width      = score + '%';
             fill.style.background = color;
             lbl.textContent       = value ? label : '—';
@@ -329,36 +373,98 @@
         }
 
         /* =====================================================
-           AVATAR PICKER
+           TOGGLE SHOW/HIDE PASSWORD
+           — dipasang pada kedua field password
+        ===================================================== */
+        function setupPasswordToggle(toggleId, inputId) {
+            const toggleBtn = document.getElementById(toggleId);
+            const input     = document.getElementById(inputId);
+
+            toggleBtn.addEventListener('click', function() {
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+
+                // Tampilkan/sembunyikan ikon yang sesuai
+                const openIcon   = this.querySelector('.eye-open');
+                const closedIcon = this.querySelector('.eye-closed');
+                if (openIcon)   openIcon.style.display   = isPassword ? 'none' : 'block';
+                if (closedIcon) closedIcon.style.display = isPassword ? 'block' : 'none';
+
+                // Update aria-label
+                this.setAttribute('aria-label',
+                    isPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'
+                );
+
+                // Fokuskan kembali ke input
+                input.focus();
+            });
+        }
+
+        /* =====================================================
+           AVATAR PICKER — event delegation
+           Tidak ada inline onclick — aman dari XSS
         ===================================================== */
         function renderAvatarPicker() {
-            document.getElementById('avatarPicker').innerHTML = AVATARS.map(a => `
-                <button
-                    type="button"
+            const container = document.getElementById('avatarPicker');
+            container.innerHTML = AVATARS.map(a => `
+                <button type="button"
                     class="avatar-option ${a === selectedAvatar ? 'selected' : ''}"
-                    onclick="selectAvatar('${escapeHtml(a)}')"
-                    aria-label="Avatar ${escapeHtml(a)}"
+                    data-avatar="${a}"
+                    aria-label="Avatar ${a}"
                     aria-checked="${a === selectedAvatar}"
                     role="radio">${a}</button>
             `).join('');
         }
 
-        // FIX: hapus 'return false' yang redundan
-        function selectAvatar(a) {
-            selectedAvatar = a;
+        // Klik avatar — event delegation pada container
+        document.getElementById('avatarPicker').addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-avatar]');
+            if (!btn) return;
+            selectedAvatar = btn.dataset.avatar;
             renderAvatarPicker();
-        }
+        });
+
+        // Arrow-key navigation dalam radiogroup
+        document.getElementById('avatarPicker').addEventListener('keydown', function(e) {
+            const btns = [...this.querySelectorAll('[data-avatar]')];
+            const idx  = btns.indexOf(document.activeElement);
+            if (idx < 0) return;
+
+            let next = -1;
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                next = (idx + 1) % btns.length;
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                next = (idx - 1 + btns.length) % btns.length;
+            }
+
+            if (next >= 0) {
+                e.preventDefault();
+                btns[next].focus();
+                btns[next].click();
+            }
+        });
 
         /* =====================================================
-           ERROR HELPERS
+           ERROR HELPERS — semua error text dinamis
         ===================================================== */
         function showFieldError(id, msg) {
             const el = document.getElementById(id);
             if (!el) return;
-            if (id === 'nameError') {
-                document.getElementById('nameErrorText').textContent = msg;
-                document.getElementById('regName').setAttribute('aria-invalid', 'true');
+
+            // Set teks error ke span yang sesuai
+            const textEl = document.getElementById(id + 'Text');
+            if (textEl) textEl.textContent = msg;
+
+            // Set aria-invalid pada input yang terkait
+            const inputMap = {
+                nameError: 'regName',
+                passError: 'regPassword',
+                confirmError: 'regConfirm'
+            };
+            if (inputMap[id]) {
+                document.getElementById(inputMap[id]).setAttribute('aria-invalid', 'true');
             }
+
             el.classList.add('show');
         }
 
@@ -378,16 +484,16 @@
         function setLoading(isLoading) {
             const btn = document.getElementById('submitBtn');
             if (isLoading) {
-                btn.disabled     = true;
-                btn.innerHTML    = `<span class="spinner"></span> Memproses...`;
+                btn.disabled  = true;
+                btn.innerHTML = '<span class="spinner"></span> Memproses...';
             } else {
-                btn.disabled     = false;
-                btn.innerHTML    = 'Buat Akun';
+                btn.disabled  = false;
+                btn.innerHTML = 'Buat Akun';
             }
         }
 
         /* =====================================================
-           FIX: handleRegister — async karena hashing password
+           HANDLE REGISTER — async, PBKDF2, tanpa finally block
         ===================================================== */
         async function handleRegister(e) {
             e.preventDefault();
@@ -413,9 +519,13 @@
             }
 
             // --- Validasi konfirmasi ---
+            if (!confirm) {
+                showFieldError('confirmError', 'Konfirmasi kata sandi wajib diisi');
+                document.getElementById('regConfirm').focus();
+                return;
+            }
             if (pass !== confirm) {
-                document.getElementById('regConfirm').setAttribute('aria-invalid', 'true');
-                document.getElementById('confirmError').classList.add('show');
+                showFieldError('confirmError', 'Kata sandi tidak cocok');
                 document.getElementById('regConfirm').focus();
                 return;
             }
@@ -425,49 +535,63 @@
             try {
                 const users = loadUsers();
 
-                // FIX: Normalisasi nama ke lowercase untuk perbandingan case-insensitive
-                // "Admin" dan "admin" dianggap nama yang sama
-                const normalizedName = rawName.toLowerCase();
+                // Normalisasi: case-insensitive + collapse multi-space + trim
+                const normalizedName = normalizeName(rawName);
 
-                // FIX: Gunakan Object.hasOwn() + KEY_PREFIX untuk mencegah prototype pollution
+                // Cek duplikat — Object.hasOwn + prefix
                 if (userExists(users, normalizedName)) {
                     showFieldError('nameError', 'Nama sudah digunakan. Silakan pilih nama lain.');
                     document.getElementById('regName').focus();
+                    setLoading(false);
                     return;
                 }
 
-                // FIX: Hash password sebelum disimpan (tidak pernah disimpan plaintext)
-                const hashedPassword = await hashPassword(pass);
+                // Hash dengan PBKDF2 + random salt
+                const salt  = crypto.randomUUID();
+                const hash  = await hashPassword(pass, salt);
 
-                // Simpan dengan KEY_PREFIX dan nama yang dinormalisasi sebagai key,
-                // nama asli (rawName) disimpan di dalam object untuk ditampilkan
                 users[KEY_PREFIX + normalizedName] = {
-                    displayName: rawName,           // nama asli untuk ditampilkan
-                    password:    hashedPassword,    // FIX: tersimpan sebagai hash SHA-256
+                    displayName: rawName,
+                    password:    hash,
+                    salt:        salt,
                     avatar:      selectedAvatar,
                     joinDate:    Date.now()
                 };
 
                 if (!saveUsers(users)) {
                     showGeneralError('Gagal menyimpan data. Penyimpanan mungkin penuh.');
+                    setLoading(false);
                     return;
                 }
 
-                // Simpan sesi aktif — gunakan key yang sama agar login.html bisa menemukannya
+                // Simpan sesi aktif
                 sessionStorage.setItem('lokerActiveUser', KEY_PREFIX + normalizedName);
 
-                // Redirect ke dashboard
+                // Redirect — tidak perlu setLoading(false), page akan pergi
                 window.location.href = 'index.html';
 
             } catch (err) {
-                // Tangkap error dari crypto.subtle atau operasi lain
                 showGeneralError('Terjadi kesalahan: ' + err.message);
-            } finally {
                 setLoading(false);
             }
         }
 
-        document.addEventListener('DOMContentLoaded', renderAvatarPicker);
+        /* =====================================================
+           INISIALISASI
+        ===================================================== */
+        document.addEventListener('DOMContentLoaded', function() {
+            renderAvatarPicker();
+            setupPasswordToggle('togglePass', 'regPassword');
+            setupPasswordToggle('toggleConfirm', 'regConfirm');
+
+            // Pasang listener form — bukan inline onsubmit di HTML
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+
+            // Listener strength indicator
+            document.getElementById('regPassword').addEventListener('input', function() {
+                updateStrength(this.value);
+            });
+        });
     </script>
 </body>
 </html>
